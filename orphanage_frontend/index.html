@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orphanage Management System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #2e7d6e;
+    --primary-light: #3fa08e;
+    --primary-dark: #1e5c52;
+    --accent: #f4a261;
+    --accent-light: #f9c784;
+    --bg: #f0f4f3;
+    --sidebar-bg: #1a3c35;
+    --sidebar-text: #c8ddd9;
+    --sidebar-active: #2e7d6e;
+    --card-bg: #ffffff;
+    --text: #2d3748;
+    --text-light: #718096;
+    --border: #e2e8f0;
+    --danger: #e53e3e;
+    --success: #38a169;
+    --warning: #d69e2e;
+    --info: #3182ce;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 260px; min-height: 100vh; background: var(--sidebar-bg);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100;
+    transition: width 0.3s;
+  }
+  .sidebar-logo {
+    padding: 24px 20px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .sidebar-logo .logo-icon {
+    width: 42px; height: 42px; background: var(--primary); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; flex-shrink: 0;
+  }
+  .sidebar-logo .logo-text { color: white; }
+  .sidebar-logo .logo-text h2 { font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .sidebar-logo .logo-text span { font-size: 11px; color: var(--sidebar-text); opacity: 0.7; }
+  .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px;
+    color: rgba(200,221,217,0.4); padding: 12px 20px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 11px 20px;
+    color: var(--sidebar-text); cursor: pointer; transition: all 0.2s;
+    border-left: 3px solid transparent; font-size: 14px; font-weight: 500;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .nav-item.active { background: rgba(46,125,110,0.3); color: white; border-left-color: var(--accent); }
+  .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+  .sidebar-footer {
+    padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);
+    color: var(--sidebar-text); font-size: 12px;
+  }
+
+  /* MAIN */
+  .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* TOPBAR */
+  .topbar {
+    background: white; padding: 0 28px; height: 64px; display: flex; align-items: center;
+    justify-content: space-between; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .topbar-left h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+  .topbar-left p { font-size: 12px; color: var(--text-light); }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border);
+    background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text-light); font-size: 15px; transition: all 0.2s; position: relative;
+  }
+  .topbar-btn:hover { background: var(--bg); color: var(--primary); }
+  .badge {
+    position: absolute; top: -3px; right: -3px; width: 16px; height: 16px;
+    background: var(--accent); border-radius: 50%; font-size: 9px; color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .user-avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--primary);
+    display: flex; align-items: center; justify-content: center; color: white;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+
+  /* CONTENT */
+  .content { padding: 28px; flex: 1; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* STATS CARDS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
+    border: 1px solid var(--border); transition: transform 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .stat-icon.green { background: #e6f4f1; color: var(--primary); }
+  .stat-icon.orange { background: #fef3e2; color: var(--accent); }
+  .stat-icon.blue { background: #ebf4ff; color: var(--info); }
+  .stat-icon.red { background: #fff5f5; color: var(--danger); }
+  .stat-info h3 { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1; }
+  .stat-info p { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .stat-info .trend { font-size: 11px; margin-top: 6px; font-weight: 600; }
+  .trend.up { color: var(--success); }
+  .trend.down { color: var(--danger); }
+
+  /* DASHBOARD GRID */
+  .dash-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+  .card {
+    background: var(--card-bg); border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .card-header h3 { font-size: 15px; font-weight: 700; color: var(--text); }
+  .card-header a { font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 600; }
+
+  /* CHART */
+  .chart-bars { display: flex; align-items: flex-end; gap: 10px; height: 160px; padding-top: 10px; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .chart-bar {
+    width: 100%; border-radius: 6px 6px 0 0; background: var(--primary);
+    transition: height 0.6s ease; min-height: 4px;
+  }
+  .chart-bar.accent { background: var(--accent); }
+  .chart-label { font-size: 11px; color: var(--text-light); }
+  .chart-val { font-size: 11px; font-weight: 700; color: var(--text); }
+
+  /* ACTIVITY FEED */
+  .activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .activity-dot.green { background: #e6f4f1; color: var(--primary); }
+  .activity-dot.orange { background: #fef3e2; color: var(--accent); }
+  .activity-dot.blue { background: #ebf4ff; color: var(--info); }
+  .activity-dot.red { background: #fff5f5; color: var(--danger); }
+  .activity-text p { font-size: 13px; color: var(--text); font-weight: 500; }
+  .activity-text span { font-size: 11px; color: var(--text-light); }
+
+  /* TABLE SECTION */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-header h2 { font-size: 20px; font-weight: 700; }
+  .section-header p { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+  .btn {
+    padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-outline:hover { background: var(--primary); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-danger:hover { background: #c53030; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+
+  .table-toolbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1; min-width: 200px; position: relative;
+  }
+  .search-box input {
+    width: 100%; padding: 9px 12px 9px 36px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 13px; outline: none; transition: border 0.2s;
+    background: white;
+  }
+  .search-box input:focus { border-color: var(--primary); }
+  .search-box i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 13px; }
+
+  .table-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #f7faf9; padding: 12px 16px; text-align: left;
+    font-size: 12px; font-weight: 700; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f7faf9; }
+  tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); }
+  .table-actions { display: flex; gap: 6px; }
+
+  /* BADGES */
+  .badge-pill {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-green { background: #e6f4f1; color: var(--primary); }
+  .badge-orange { background: #fef3e2; color: #c05621; }
+  .badge-blue { background: #ebf4ff; color: var(--info); }
+  .badge-red { background: #fff5f5; color: var(--danger); }
+  .badge-gray { background: #f7fafc; color: #718096; border: 1px solid var(--border); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; width: 520px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    padding: 22px 24px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--bg);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text-light); font-size: 16px; transition: all 0.2s;
+  }
+  .modal-close:hover { background: #fee2e2; color: var(--danger); }
+  .modal-body { padding: 22px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 13px; outline: none; transition: border 0.2s;
+    font-family: inherit; background: white;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-top: 1px solid var(--border); }
+  .pagination-info { font-size: 12px; color: var(--text-light); }
+  .pagination-btns { display: flex; gap: 4px; }
+  .page-btn {
+    width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border);
+    background: white; cursor: pointer; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .page-btn:hover, .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* TOAST */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: white; border-radius: 10px; padding: 12px 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500;
+    border-left: 4px solid var(--success); animation: slideIn 0.3s ease;
+    min-width: 260px;
+  }
+  .toast.error { border-left-color: var(--danger); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-light); }
+  .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+  .empty-state p { font-size: 14px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .dash-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .sidebar { width: 0; overflow: hidden; } .main { margin-left: 0; } .stats-grid { grid-template-columns: 1fr 1fr; } .form-row { grid-template-columns: 1fr; } }
+
+  /* SQL PAGE */
+  .sql-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .sql-tab {
+    padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: white; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--text-light); transition: all 0.2s;
+  }
+  .sql-tab:hover { border-color: var(--primary); color: var(--primary); }
+  .sql-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .sql-panel { display: none; }
+  .sql-panel.active { display: block; }
+  .sql-block {
+    background: #1a2332; border-radius: var(--radius); margin-bottom: 20px;
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .sql-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; background: #141c28; border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .sql-block-header .sql-title { font-size: 13px; font-weight: 700; color: #7dd3c8; display: flex; align-items: center; gap: 8px; }
+  .sql-block-header .sql-desc { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .copy-btn {
+    padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: rgba(255,255,255,0.5); font-size: 11px; cursor: pointer;
+    transition: all 0.2s; font-weight: 600;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+  .copy-btn.copied { color: #68d391; border-color: #68d391; }
+  pre.sql-code {
+    padding: 18px; margin: 0; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px; line-height: 1.7; color: #e2e8f0;
+  }
+  /* SQL syntax highlight */
+  .kw  { color: #f6ad55; font-weight: 700; }   /* keywords */
+  .tb  { color: #68d391; }                       /* table names */
+  .cl  { color: #90cdf4; }                       /* columns */
+  .st  { color: #fc8181; }                       /* strings */
+  .nm  { color: #b794f4; }                       /* numbers */
+  .cm  { color: #718096; font-style: italic; }   /* comments */
+  .fn  { color: #f6e05e; }                       /* functions */
+
+  .sql-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .sql-grid { grid-template-columns: 1fr; } }
+
+  .er-diagram {
+    background: white; border-radius: var(--radius); padding: 24px;
+    box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px;
+  }
+  .er-diagram h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+  .er-tables { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .er-table {
+    border: 2px solid var(--primary); border-radius: 10px; overflow: hidden;
+    min-width: 160px; font-size: 12px;
+  }
+  .er-table-head {
+    background: var(--primary); color: white; padding: 8px 14px;
+    font-weight: 700; font-size: 13px; text-align: center;
+  }
+  .er-table-body { background: white; }
+  .er-col {
+    padding: 6px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px; color: var(--text);
+  }
+  .er-col:last-child { border-bottom: none; }
+  .er-col .pk { color: #d69e2e; font-size: 10px; font-weight: 800; }
+  .er-col .fk { color: var(--info); font-size: 10px; font-weight: 800; }
+  .er-col .type { color: var(--text-light); font-size: 10px; margin-left: auto; }
+  .er-arrow {
+    display: flex; align-items: center; color: var(--text-light);
+    font-size: 20px; padding-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heart"></i></div>
+    <div class="logo-text"><h2>HopeHaven</h2><span>Orphanage Management</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)"><i class="fas fa-th-large"></i> Dashboard</div>
+    <div class="nav-section-label">Management</div>
+    <div class="nav-item" onclick="showPage('children', this)"><i class="fas fa-child"></i> Children</div>
+    <div class="nav-item" onclick="showPage('adoptions', this)"><i class="fas fa-hands-holding-child"></i> Adoptions</div>
+    <div class="nav-item" onclick="showPage('staff', this)"><i class="fas fa-user-tie"></i> Staff</div>
+    <div class="nav-section-label">Finance</div>
+    <div class="nav-item" onclick="showPage('donors', this)"><i class="fas fa-hand-holding-heart"></i> Donors</div>
+    <div class="nav-item" onclick="showPage('donations', this)"><i class="fas fa-donate"></i> Donations</div>
+    <div class="nav-section-label">Database</div>
+    <div class="nav-item" onclick="showPage('sql', this)"><i class="fas fa-database"></i> SQL Queries</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span><i class="fas fa-circle" style="color:#38a169;font-size:8px;margin-right:6px;"></i> Data saved locally</span>
+      <button onclick="resetData()" title="Reset to sample data" style="background:none;border:none;color:rgba(200,221,217,0.4);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;transition:all 0.2s;" onmouseover="this.style.color='#fc8181'" onmouseout="this.style.color='rgba(200,221,217,0.4)'"><i class="fas fa-rotate-left"></i> Reset</button>
+    </div>
+    <div style="font-size:10px;color:rgba(200,221,217,0.3);margin-top:4px;">v1.0 · HopeHaven OMS</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="page-title">Dashboard</h1>
+      <p id="page-subtitle">Welcome back, Admin</p>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn"><i class="fas fa-bell"></i><span class="badge">3</span></button>
+      <button class="topbar-btn"><i class="fas fa-cog"></i></button>
+      <div class="user-avatar">AD</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-child"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-children">0</h3>
+            <p>Total Children</p>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> 2 this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fas fa-hands-holding-child"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-adoptions">0</h3>
+            <p>Adoptions</p>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> 1 pending</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-donate"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-donations">$0</h3>
+            <p>Total Donations</p>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> 12% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-user-tie"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-staff">0</h3>
+            <p>Staff Members</p>
+            <div class="trend down"><i class="fas fa-minus"></i> No change</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:8px;"></i>Monthly Donations</h3>
+            <a href="#">View All</a>
+          </div>
+          <div class="chart-bars" id="chart-bars"></div>
+          <div style="display:flex;gap:10px;margin-top:12px;" id="chart-labels"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-clock" style="color:var(--accent);margin-right:8px;"></i>Recent Activity</h3>
+          </div>
+          <div id="activity-feed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CHILDREN PAGE ===== -->
+    <div class="page" id="page-children">
+      <div class="section-header">
+        <div><h2>Children</h2><p>Manage all children records in the orphanage</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-child')"><i class="fas fa-plus"></i> Add Child</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search children..." oninput="filterTable('children-table', this.value)"></div>
+        <select class="btn btn-outline" style="padding:9px 14px;" onchange="filterByGender(this.value)">
+          <option value="">All Genders</option><option value="Male">Male</option><option value="Female">Female</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="children-table">
+          <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Admission Date</th><th>Health Status</th><th>Actions</th></tr></thead>
+          <tbody id="children-tbody"></tbody>
+        </table>
+        <div class="pagination"><span class="pagination-info" id="children-info"></span><div class="pagination-btns" id="children-pages"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== ADOPTIONS PAGE ===== -->
+    <div class="page" id="page-adoptions">
+      <div class="section-header">
+        <div><h2>Adoptions</h2><p>Track and manage adoption records</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-adoption')"><i class="fas fa-plus"></i> New Adoption</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search adoptions..." oninput="filterTable('adoptions-table', this.value)"></div>
+        <select class="btn btn-outline" style="padding:9px 14px;" onchange="filterByStatus('adoptions-table', this.value)">
+          <option value="">All Status</option><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="Rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="adoptions-table">
+          <thead><tr><th>#</th><th>Adoption ID</th><th>Child Name</th><th>Adopter Name</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adoptions-tbody"></tbody>
+        </table>
+        <div class="pagination"><span class="pagination-info" id="adoptions-info"></span><div class="pagination-btns" id="adoptions-pages"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== STAFF PAGE ===== -->
+    <div class="page" id="page-staff">
+      <div class="section-header">
+        <div><h2>Staff</h2><p>Manage orphanage staff and their roles</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-staff')"><i class="fas fa-plus"></i> Add Staff</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search staff..." oninput="filterTable('staff-table', this.value)"></div>
+      </div>
+      <div class="table-wrap">
+        <table id="staff-table">
+          <thead><tr><th>#</th><th>Staff ID</th><th>Name</th><th>Role</th><th>Salary</th><th>Contact</th><th>Actions</th></tr></thead>
+          <tbody id="staff-tbody"></tbody>
+        </table>
+        <div class="pagination"><span class="pagination-info" id="staff-info"></span><div class="pagination-btns" id="staff-pages"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== DONORS PAGE ===== -->
+    <div class="page" id="page-donors">
+      <div class="section-header">
+        <div><h2>Donors</h2><p>Manage donor information and contacts</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-donor')"><i class="fas fa-plus"></i> Add Donor</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search donors..." oninput="filterTable('donors-table', this.value)"></div>
+      </div>
+      <div class="table-wrap">
+        <table id="donors-table">
+          <thead><tr><th>#</th><th>Donor ID</th><th>Name</th><th>Contact</th><th>Total Donated</th><th>Actions</th></tr></thead>
+          <tbody id="donors-tbody"></tbody>
+        </table>
+        <div class="pagination"><span class="pagination-info" id="donors-info"></span><div class="pagination-btns" id="donors-pages"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== DONATIONS PAGE ===== -->
+    <div class="page" id="page-donations">
+      <div class="section-header">
+        <div><h2>Donations</h2><p>Track all financial contributions</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-donation')"><i class="fas fa-plus"></i> Record Donation</button>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search donations..." oninput="filterTable('donations-table', this.value)"></div>
+      </div>
+      <div class="table-wrap">
+        <table id="donations-table">
+          <thead><tr><th>#</th><th>Donation ID</th><th>Donor Name</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="donations-tbody"></tbody>
+        </table>
+        <div class="pagination"><span class="pagination-info" id="donations-info"></span><div class="pagination-btns" id="donations-pages"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== SQL QUERIES PAGE ===== -->
+    <div class="page" id="page-sql">
+      <div class="section-header">
+        <div><h2>SQL Queries</h2><p>Complete database schema, DDL, DML and query operations</p></div>
+        <button class="btn btn-primary" onclick="copyAll()"><i class="fas fa-copy"></i> Copy All SQL</button>
+      </div>
+
+      <!-- ER DIAGRAM -->
+      <div class="er-diagram">
+        <h3><i class="fas fa-project-diagram" style="color:var(--primary);margin-right:8px;"></i>Entity Relationship Overview</h3>
+        <div class="er-tables">
+          <div class="er-table">
+            <div class="er-table-head">child</div>
+            <div class="er-table-body">
+              <div class="er-col"><span class="pk">PK</span> child_id <span class="type">INT</span></div>
+              <div class="er-col">name <span class="type">VARCHAR(50)</span></div>
+              <div class="er-col">age <span class="type">INT</span></div>
+              <div class="er-col">gender <span class="type">VARCHAR(10)</span></div>
+              <div class="er-col">admission_date <span class="type">DATE</span></div>
+              <div class="er-col">health_status <span class="type">VARCHAR(30)</span></div>
+            </div>
+          </div>
+          <div class="er-arrow">⇄</div>
+          <div class="er-table">
+            <div class="er-table-head">adoption</div>
+            <div class="er-table-body">
+              <div class="er-col"><span class="pk">PK</span> adoption_id <span class="type">INT</span></div>
+              <div class="er-col"><span class="fk">FK</span> child_id <span class="type">INT</span></div>
+              <div class="er-col">adopter_name <span class="type">VARCHAR(50)</span></div>
+              <div class="er-col">status <span class="type">VARCHAR(20)</span></div>
+            </div>
+          </div>
+          <div class="er-arrow" style="padding-top:0;align-self:center;">⇄</div>
+          <div class="er-table">
+            <div class="er-table-head">donor</div>
+            <div class="er-table-body">
+              <div class="er-col"><span class="pk">PK</span> donor_id <span class="type">INT</span></div>
+              <div class="er-col">name <span class="type">VARCHAR(50)</span></div>
+              <div class="er-col">contact <span class="type">VARCHAR(15)</span></div>
+            </div>
+          </div>
+          <div class="er-arrow" style="padding-top:0;align-self:center;">⇄</div>
+          <div class="er-table">
+            <div class="er-table-head">donation</div>
+            <div class="er-table-body">
+              <div class="er-col"><span class="pk">PK</span> donation_id <span class="type">INT</span></div>
+              <div class="er-col"><span class="fk">FK</span> donor_id <span class="type">INT</span></div>
+              <div class="er-col">amount <span class="type">INT</span></div>
+              <div class="er-col">date <span class="type">DATE</span></div>
+            </div>
+          </div>
+          <div class="er-arrow" style="padding-top:0;align-self:center;"> </div>
+          <div class="er-table">
+            <div class="er-table-head">staff</div>
+            <div class="er-table-body">
+              <div class="er-col"><span class="pk">PK</span> staff_id <span class="type">INT</span></div>
+              <div class="er-col">name <span class="type">VARCHAR(50)</span></div>
+              <div class="er-col">role <span class="type">VARCHAR(50)</span></div>
+              <div class="er-col">salary <span class="type">INT</span></div>
+              <div class="er-col">contact <span class="type">VARCHAR(15)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="sql-tabs">
+        <button class="sql-tab active" onclick="showSqlTab('ddl', this)"><i class="fas fa-table"></i> DDL — Create Tables</button>
+        <button class="sql-tab" onclick="showSqlTab('dml', this)"><i class="fas fa-plus-circle"></i> DML — Insert Data</button>
+        <button class="sql-tab" onclick="showSqlTab('select', this)"><i class="fas fa-search"></i> SELECT Queries</button>
+        <button class="sql-tab" onclick="showSqlTab('join', this)"><i class="fas fa-link"></i> JOIN Queries</button>
+        <button class="sql-tab" onclick="showSqlTab('update', this)"><i class="fas fa-edit"></i> UPDATE / DELETE</button>
+        <button class="sql-tab" onclick="showSqlTab('agg', this)"><i class="fas fa-calculator"></i> Aggregate</button>
+      </div>
+
+      <!-- DDL -->
+      <div class="sql-panel active" id="sql-ddl">
+        <div id="ddl-blocks"></div>
+      </div>
+
+      <!-- DML INSERT -->
+      <div class="sql-panel" id="sql-dml">
+        <div id="dml-blocks"></div>
+      </div>
+
+      <!-- SELECT -->
+      <div class="sql-panel" id="sql-select">
+        <div id="select-blocks"></div>
+      </div>
+
+      <!-- JOIN -->
+      <div class="sql-panel" id="sql-join">
+        <div id="join-blocks"></div>
+      </div>
+
+      <!-- UPDATE/DELETE -->
+      <div class="sql-panel" id="sql-update">
+        <div id="update-blocks"></div>
+      </div>
+
+      <!-- AGGREGATE -->
+      <div class="sql-panel" id="sql-agg">
+        <div id="agg-blocks"></div>
+      </div>
+
+    </div><!-- /sql page -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Child Modal -->
+<div class="modal-overlay" id="modal-child">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-child" style="color:var(--primary);margin-right:8px;"></i>Add New Child</h3>
+      <button class="modal-close" onclick="closeModal('modal-child')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input type="text" id="child-name" placeholder="Enter full name"></div>
+        <div class="form-group"><label>Age</label><input type="number" id="child-age" placeholder="Age" min="0" max="18"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Gender</label>
+          <select id="child-gender"><option value="">Select gender</option><option>Male</option><option>Female</option></select>
+        </div>
+        <div class="form-group"><label>Admission Date</label><input type="date" id="child-admission"></div>
+      </div>
+      <div class="form-group"><label>Health Status</label>
+        <select id="child-health"><option value="">Select status</option><option>Good</option><option>Fair</option><option>Poor</option><option>Under Treatment</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-child')">Cancel</button>
+      <button class="btn btn-primary" onclick="addChild()"><i class="fas fa-save"></i> Save Child</button>
+    </div>
+  </div>
+</div>
+
+<!-- Adoption Modal -->
+<div class="modal-overlay" id="modal-adoption">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-hands-holding-child" style="color:var(--primary);margin-right:8px;"></i>New Adoption Record</h3>
+      <button class="modal-close" onclick="closeModal('modal-adoption')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Select Child</label>
+        <select id="adoption-child"><option value="">-- Select Child --</option></select>
+      </div>
+      <div class="form-group"><label>Adopter Name</label><input type="text" id="adoption-adopter" placeholder="Full name of adopter"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="adoption-status"><option value="">Select status</option><option>Pending</option><option>Approved</option><option>Rejected</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-adoption')">Cancel</button>
+      <button class="btn btn-primary" onclick="addAdoption()"><i class="fas fa-save"></i> Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Staff Modal -->
+<div class="modal-overlay" id="modal-staff">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-tie" style="color:var(--primary);margin-right:8px;"></i>Add Staff Member</h3>
+      <button class="modal-close" onclick="closeModal('modal-staff')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input type="text" id="staff-name" placeholder="Enter full name"></div>
+        <div class="form-group"><label>Role</label>
+          <select id="staff-role"><option value="">Select role</option><option>Caretaker</option><option>Teacher</option><option>Doctor</option><option>Cook</option><option>Security</option><option>Administrator</option><option>Counselor</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Salary ($)</label><input type="number" id="staff-salary" placeholder="Monthly salary"></div>
+        <div class="form-group"><label>Contact</label><input type="text" id="staff-contact" placeholder="Phone number"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-staff')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStaff()"><i class="fas fa-save"></i> Save Staff</button>
+    </div>
+  </div>
+</div>
+
+<!-- Donor Modal -->
+<div class="modal-overlay" id="modal-donor">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-hand-holding-heart" style="color:var(--primary);margin-right:8px;"></i>Add Donor</h3>
+      <button class="modal-close" onclick="closeModal('modal-donor')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Full Name</label><input type="text" id="donor-name" placeholder="Donor full name"></div>
+      <div class="form-group"><label>Contact</label><input type="text" id="donor-contact" placeholder="Phone number"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-donor')">Cancel</button>
+      <button class="btn btn-primary" onclick="addDonor()"><i class="fas fa-save"></i> Save Donor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Donation Modal -->
+<div class="modal-overlay" id="modal-donation">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-donate" style="color:var(--primary);margin-right:8px;"></i>Record Donation</h3>
+      <button class="modal-close" onclick="closeModal('modal-donation')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Select Donor</label>
+        <select id="donation-donor"><option value="">-- Select Donor --</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Amount ($)</label><input type="number" id="donation-amount" placeholder="Amount"></div>
+        <div class="form-group"><label>Date</label><input type="date" id="donation-date"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-donation')">Cancel</button>
+      <button class="btn btn-primary" onclick="addDonation()"><i class="fas fa-save"></i> Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="width:400px;">
+    <div class="modal-header">
+      <h3 style="color:var(--danger);"><i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Confirm Delete</h3>
+      <button class="modal-close" onclick="closeModal('modal-delete')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text);">Are you sure you want to delete <strong id="delete-name"></strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancel</button>
+      <button class="btn btn-danger" id="confirm-delete-btn"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+let db = {
+  children: [
+    { child_id: 1, name: 'Aisha Rahman',    age: 7,  gender: 'Female', admission_date: '2023-03-15', health_status: 'Good' },
+    { child_id: 2, name: 'Omar Farooq',     age: 10, gender: 'Male',   admission_date: '2022-11-20', health_status: 'Fair' },
+    { child_id: 3, name: 'Fatima Noor',     age: 5,  gender: 'Female', admission_date: '2024-01-08', health_status: 'Good' },
+    { child_id: 4, name: 'Bilal Ahmed',     age: 12, gender: 'Male',   admission_date: '2021-07-30', health_status: 'Under Treatment' },
+    { child_id: 5, name: 'Zara Khan',       age: 8,  gender: 'Female', admission_date: '2023-09-12', health_status: 'Good' },
+    { child_id: 6, name: 'Hassan Ali',      age: 6,  gender: 'Male',   admission_date: '2024-02-14', health_status: 'Good' },
+    { child_id: 7, name: 'Maryam Siddiqui', age: 9,  gender: 'Female', admission_date: '2022-05-22', health_status: 'Fair' },
+    { child_id: 8, name: 'Yusuf Ibrahim',   age: 11, gender: 'Male',   admission_date: '2023-12-01', health_status: 'Good' },
+  ],
+  adoptions: [
+    { adoption_id: 1, child_id: 3, adopter_name: 'Mr. & Mrs. Malik',   status: 'Approved' },
+    { adoption_id: 2, child_id: 6, adopter_name: 'Dr. Sarah Johnson',  status: 'Pending' },
+    { adoption_id: 3, child_id: 1, adopter_name: 'Ahmed & Layla Qureshi', status: 'Pending' },
+    { adoption_id: 4, child_id: 5, adopter_name: 'Robert & Emily Chen', status: 'Rejected' },
+  ],
+  donors: [
+    { donor_id: 1, name: 'Al-Noor Foundation',  contact: '0300-1234567' },
+    { donor_id: 2, name: 'Zakat Committee',      contact: '0321-9876543' },
+    { donor_id: 3, name: 'Mrs. Amina Hussain',   contact: '0333-5551234' },
+    { donor_id: 4, name: 'Tech4Good Corp',       contact: '0311-7778888' },
+    { donor_id: 5, name: 'Anonymous Donor',      contact: 'N/A' },
+  ],
+  donations: [
+    { donation_id: 1, donor_id: 1, amount: 5000,  date: '2026-04-01' },
+    { donation_id: 2, donor_id: 2, amount: 3200,  date: '2026-04-10' },
+    { donation_id: 3, donor_id: 3, amount: 1500,  date: '2026-04-15' },
+    { donation_id: 4, donor_id: 1, amount: 8000,  date: '2026-03-20' },
+    { donation_id: 5, donor_id: 4, amount: 12000, date: '2026-03-05' },
+    { donation_id: 6, donor_id: 5, amount: 2500,  date: '2026-02-28' },
+    { donation_id: 7, donor_id: 2, amount: 4000,  date: '2026-02-14' },
+    { donation_id: 8, donor_id: 3, amount: 1000,  date: '2026-01-30' },
+  ],
+  staff: [
+    { staff_id: 1, name: 'Mrs. Khadija Bibi',  role: 'Administrator', salary: 45000, contact: '0300-1112222' },
+    { staff_id: 2, name: 'Mr. Tariq Mehmood',  role: 'Caretaker',     salary: 25000, contact: '0321-3334444' },
+    { staff_id: 3, name: 'Dr. Nadia Iqbal',    role: 'Doctor',        salary: 60000, contact: '0333-5556666' },
+    { staff_id: 4, name: 'Ms. Sana Perveen',   role: 'Teacher',       salary: 30000, contact: '0311-7778888' },
+    { staff_id: 5, name: 'Mr. Imran Butt',     role: 'Security',      salary: 20000, contact: '0345-9990000' },
+    { staff_id: 6, name: 'Mrs. Rukhsana Bano', role: 'Cook',          salary: 22000, contact: '0300-1231231' },
+  ]
+};
+
+let nextIds = { child: 9, adoption: 5, donor: 6, donation: 9, staff: 7 };
+
+// ============================================================
+// LOCALSTORAGE PERSISTENCE
+// ============================================================
+function saveData() {
+  localStorage.setItem('oms_db', JSON.stringify(db));
+  localStorage.setItem('oms_ids', JSON.stringify(nextIds));
+  // flash saved indicator
+  const sub = document.getElementById('page-subtitle');
+  const prev = sub.textContent;
+  sub.innerHTML = '<span style="color:var(--success);font-weight:600;"><i class="fas fa-check-circle"></i> Changes saved</span>';
+  setTimeout(() => sub.textContent = prev, 1800);
+}
+
+function loadData() {
+  const saved = localStorage.getItem('oms_db');
+  const savedIds = localStorage.getItem('oms_ids');
+  if (saved) {
+    try { db = JSON.parse(saved); } catch(e) {}
+  }
+  if (savedIds) {
+    try { nextIds = JSON.parse(savedIds); } catch(e) {}
+  }
+}
+
+function resetData() {
+  if (!confirm('This will delete ALL data and restore sample data. Are you sure?')) return;
+  localStorage.removeItem('oms_db');
+  localStorage.removeItem('oms_ids');
+  location.reload();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const pageTitles = {
+  dashboard: ['Dashboard', 'Welcome back, Admin'],
+  children:  ['Children', 'Manage all children records'],
+  adoptions: ['Adoptions', 'Track adoption requests'],
+  staff:     ['Staff', 'Manage staff members'],
+  donors:    ['Donors', 'Manage donor information'],
+  donations: ['Donations', 'Track financial contributions'],
+  sql:       ['SQL Queries', 'Database schema, queries & operations'],
+};
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[name][0];
+  document.getElementById('page-subtitle').textContent = pageTitles[name][1];
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  document.getElementById('stat-children').textContent = db.children.length;
+  document.getElementById('stat-adoptions').textContent = db.adoptions.length;
+  const total = db.donations.reduce((s, d) => s + d.amount, 0);
+  document.getElementById('stat-donations').textContent = '$' + total.toLocaleString();
+  document.getElementById('stat-staff').textContent = db.staff.length;
+  renderChart();
+  renderActivity();
+}
+
+function renderChart() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+  const values = [8500, 5500, 20000, 9700, 3200, 0];
+  // fill from actual data
+  db.donations.forEach(d => {
+    const m = new Date(d.date).getMonth();
+    if (m < 6) values[m] += d.amount;
+  });
+  const max = Math.max(...values, 1);
+  const barsEl = document.getElementById('chart-bars');
+  const labelsEl = document.getElementById('chart-labels');
+  barsEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+  months.forEach((m, i) => {
+    const pct = Math.round((values[i] / max) * 140);
+    barsEl.innerHTML += `<div class="chart-bar-wrap">
+      <span class="chart-val">$${(values[i]/1000).toFixed(1)}k</span>
+      <div class="chart-bar${i===3?' accent':''}" style="height:${pct}px;"></div>
+    </div>`;
+    labelsEl.innerHTML += `<div style="flex:1;text-align:center;font-size:11px;color:var(--text-light);">${m}</div>`;
+  });
+}
+
+function renderActivity() {
+  const activities = [
+    { icon: 'fas fa-child', color: 'green', text: 'New child Hassan Ali admitted', time: '2 hours ago' },
+    { icon: 'fas fa-donate', color: 'blue', text: 'Donation of $5,000 received from Al-Noor Foundation', time: '5 hours ago' },
+    { icon: 'fas fa-hands-holding-child', color: 'orange', text: 'Adoption request for Fatima Noor approved', time: '1 day ago' },
+    { icon: 'fas fa-user-tie', color: 'green', text: 'New staff member Dr. Nadia Iqbal added', time: '2 days ago' },
+    { icon: 'fas fa-hand-holding-heart', color: 'blue', text: 'New donor Tech4Good Corp registered', time: '3 days ago' },
+  ];
+  document.getElementById('activity-feed').innerHTML = activities.map(a => `
+    <div class="activity-item">
+      <div class="activity-dot ${a.color}"><i class="${a.icon}"></i></div>
+      <div class="activity-text"><p>${a.text}</p><span>${a.time}</span></div>
+    </div>`).join('');
+}
+
+// ============================================================
+// CHILDREN TABLE
+// ============================================================
+function renderChildren() {
+  const tbody = document.getElementById('children-tbody');
+  const rows = db.children.map((c, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.age} yrs</td>
+      <td><span class="badge-pill ${c.gender==='Male'?'badge-blue':'badge-orange'}">${c.gender}</span></td>
+      <td>${formatDate(c.admission_date)}</td>
+      <td><span class="badge-pill ${healthBadge(c.health_status)}">${c.health_status}</span></td>
+      <td><div class="table-actions">
+        <button class="btn btn-outline btn-sm" onclick="editChild(${c.child_id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('children', ${c.child_id}, '${c.name}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  tbody.innerHTML = rows || '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-child"></i><p>No children records found</p></div></td></tr>';
+  document.getElementById('children-info').textContent = `Showing ${db.children.length} records`;
+}
+
+function healthBadge(s) {
+  if (s === 'Good') return 'badge-green';
+  if (s === 'Fair') return 'badge-orange';
+  if (s === 'Poor') return 'badge-red';
+  return 'badge-blue';
+}
+
+function addChild() {
+  const name = document.getElementById('child-name').value.trim();
+  const age = parseInt(document.getElementById('child-age').value);
+  const gender = document.getElementById('child-gender').value;
+  const admission = document.getElementById('child-admission').value;
+  const health = document.getElementById('child-health').value;
+  if (!name || !age || !gender || !admission || !health) { showToast('Please fill all fields', 'error'); return; }
+  db.children.push({ child_id: nextIds.child++, name, age, gender, admission_date: admission, health_status: health });
+  closeModal('modal-child');
+  clearForm(['child-name','child-age','child-gender','child-admission','child-health']);
+  renderChildren();
+  updateAdoptionChildSelect();
+  showToast('Child record added successfully');
+  renderDashboard();
+  saveData();
+}
+
+function editChild(id) {
+  const c = db.children.find(x => x.child_id === id);
+  if (!c) return;
+  document.getElementById('child-name').value = c.name;
+  document.getElementById('child-age').value = c.age;
+  document.getElementById('child-gender').value = c.gender;
+  document.getElementById('child-admission').value = c.admission_date;
+  document.getElementById('child-health').value = c.health_status;
+  openModal('modal-child');
+  document.querySelector('#modal-child .btn-primary').onclick = () => {
+    c.name = document.getElementById('child-name').value.trim();
+    c.age = parseInt(document.getElementById('child-age').value);
+    c.gender = document.getElementById('child-gender').value;
+    c.admission_date = document.getElementById('child-admission').value;
+    c.health_status = document.getElementById('child-health').value;
+    closeModal('modal-child');
+    renderChildren();
+    showToast('Child record updated');
+    saveData();
+    document.querySelector('#modal-child .btn-primary').onclick = addChild;
+  };
+}
+
+// ============================================================
+// ADOPTIONS TABLE
+// ============================================================
+function renderAdoptions() {
+  const tbody = document.getElementById('adoptions-tbody');
+  const rows = db.adoptions.map((a, i) => {
+    const child = db.children.find(c => c.child_id === a.child_id);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">ADO-${String(a.adoption_id).padStart(3,'0')}</code></td>
+      <td>${child ? child.name : 'Unknown'}</td>
+      <td>${a.adopter_name}</td>
+      <td><span class="badge-pill ${statusBadge(a.status)}">${a.status}</span></td>
+      <td><div class="table-actions">
+        <button class="btn btn-outline btn-sm" onclick="changeStatus(${a.adoption_id})"><i class="fas fa-exchange-alt"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('adoptions', ${a.adoption_id}, 'ADO-${String(a.adoption_id).padStart(3,'0')}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows || '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-hands-holding-child"></i><p>No adoption records found</p></div></td></tr>';
+  document.getElementById('adoptions-info').textContent = `Showing ${db.adoptions.length} records`;
+}
+
+function statusBadge(s) {
+  if (s === 'Approved') return 'badge-green';
+  if (s === 'Pending') return 'badge-orange';
+  if (s === 'Rejected') return 'badge-red';
+  return 'badge-gray';
+}
+
+function updateAdoptionChildSelect() {
+  const sel = document.getElementById('adoption-child');
+  sel.innerHTML = '<option value="">-- Select Child --</option>' +
+    db.children.map(c => `<option value="${c.child_id}">${c.name} (Age ${c.age})</option>`).join('');
+}
+
+function addAdoption() {
+  const child_id = parseInt(document.getElementById('adoption-child').value);
+  const adopter = document.getElementById('adoption-adopter').value.trim();
+  const status = document.getElementById('adoption-status').value;
+  if (!child_id || !adopter || !status) { showToast('Please fill all fields', 'error'); return; }
+  db.adoptions.push({ adoption_id: nextIds.adoption++, child_id, adopter_name: adopter, status });
+  closeModal('modal-adoption');
+  clearForm(['adoption-child','adoption-adopter','adoption-status']);
+  renderAdoptions();
+  showToast('Adoption record created');
+  renderDashboard();
+  saveData();
+}
+
+function changeStatus(id) {
+  const a = db.adoptions.find(x => x.adoption_id === id);
+  if (!a) return;
+  const statuses = ['Pending', 'Approved', 'Rejected'];
+  const next = statuses[(statuses.indexOf(a.status) + 1) % statuses.length];
+  a.status = next;
+  renderAdoptions();
+  showToast(`Status changed to ${next}`);
+  saveData();
+}
+
+// ============================================================
+// STAFF TABLE
+// ============================================================
+function renderStaff() {
+  const tbody = document.getElementById('staff-tbody');
+  const rows = db.staff.map((s, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">STF-${String(s.staff_id).padStart(3,'0')}</code></td>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge-pill badge-blue">${s.role}</span></td>
+      <td>$${s.salary.toLocaleString()}</td>
+      <td>${s.contact}</td>
+      <td><div class="table-actions">
+        <button class="btn btn-outline btn-sm" onclick="editStaff(${s.staff_id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('staff', ${s.staff_id}, '${s.name}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  tbody.innerHTML = rows || '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-user-tie"></i><p>No staff records found</p></div></td></tr>';
+  document.getElementById('staff-info').textContent = `Showing ${db.staff.length} records`;
+}
+
+function addStaff() {
+  const name = document.getElementById('staff-name').value.trim();
+  const role = document.getElementById('staff-role').value;
+  const salary = parseInt(document.getElementById('staff-salary').value);
+  const contact = document.getElementById('staff-contact').value.trim();
+  if (!name || !role || !salary || !contact) { showToast('Please fill all fields', 'error'); return; }
+  db.staff.push({ staff_id: nextIds.staff++, name, role, salary, contact });
+  closeModal('modal-staff');
+  clearForm(['staff-name','staff-role','staff-salary','staff-contact']);
+  renderStaff();
+  showToast('Staff member added');
+  renderDashboard();
+  saveData();
+}
+
+function editStaff(id) {
+  const s = db.staff.find(x => x.staff_id === id);
+  if (!s) return;
+  document.getElementById('staff-name').value = s.name;
+  document.getElementById('staff-role').value = s.role;
+  document.getElementById('staff-salary').value = s.salary;
+  document.getElementById('staff-contact').value = s.contact;
+  openModal('modal-staff');
+  document.querySelector('#modal-staff .btn-primary').onclick = () => {
+    s.name = document.getElementById('staff-name').value.trim();
+    s.role = document.getElementById('staff-role').value;
+    s.salary = parseInt(document.getElementById('staff-salary').value);
+    s.contact = document.getElementById('staff-contact').value.trim();
+    closeModal('modal-staff');
+    renderStaff();
+    showToast('Staff record updated');
+    saveData();
+    document.querySelector('#modal-staff .btn-primary').onclick = addStaff;
+  };
+}
+
+// ============================================================
+// DONORS TABLE
+// ============================================================
+function renderDonors() {
+  const tbody = document.getElementById('donors-tbody');
+  const rows = db.donors.map((d, i) => {
+    const total = db.donations.filter(x => x.donor_id === d.donor_id).reduce((s, x) => s + x.amount, 0);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">DNR-${String(d.donor_id).padStart(3,'0')}</code></td>
+      <td><strong>${d.name}</strong></td>
+      <td>${d.contact}</td>
+      <td><strong style="color:var(--primary);">$${total.toLocaleString()}</strong></td>
+      <td><div class="table-actions">
+        <button class="btn btn-outline btn-sm" onclick="editDonor(${d.donor_id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('donors', ${d.donor_id}, '${d.name}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows || '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-hand-holding-heart"></i><p>No donors found</p></div></td></tr>';
+  document.getElementById('donors-info').textContent = `Showing ${db.donors.length} records`;
+}
+
+function addDonor() {
+  const name = document.getElementById('donor-name').value.trim();
+  const contact = document.getElementById('donor-contact').value.trim();
+  if (!name || !contact) { showToast('Please fill all fields', 'error'); return; }
+  db.donors.push({ donor_id: nextIds.donor++, name, contact });
+  closeModal('modal-donor');
+  clearForm(['donor-name','donor-contact']);
+  renderDonors();
+  updateDonationDonorSelect();
+  showToast('Donor added successfully');
+  saveData();
+}
+
+function editDonor(id) {
+  const d = db.donors.find(x => x.donor_id === id);
+  if (!d) return;
+  document.getElementById('donor-name').value = d.name;
+  document.getElementById('donor-contact').value = d.contact;
+  openModal('modal-donor');
+  document.querySelector('#modal-donor .btn-primary').onclick = () => {
+    d.name = document.getElementById('donor-name').value.trim();
+    d.contact = document.getElementById('donor-contact').value.trim();
+    closeModal('modal-donor');
+    renderDonors();
+    showToast('Donor updated');
+    saveData();
+    document.querySelector('#modal-donor .btn-primary').onclick = addDonor;
+  };
+}
+
+// ============================================================
+// DONATIONS TABLE
+// ============================================================
+function renderDonations() {
+  const tbody = document.getElementById('donations-tbody');
+  const rows = db.donations.map((d, i) => {
+    const donor = db.donors.find(x => x.donor_id === d.donor_id);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">DON-${String(d.donation_id).padStart(3,'0')}</code></td>
+      <td>${donor ? donor.name : 'Unknown'}</td>
+      <td><strong style="color:var(--primary);">$${d.amount.toLocaleString()}</strong></td>
+      <td>${formatDate(d.date)}</td>
+      <td><div class="table-actions">
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('donations', ${d.donation_id}, 'DON-${String(d.donation_id).padStart(3,'0')}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows || '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-donate"></i><p>No donations found</p></div></td></tr>';
+  document.getElementById('donations-info').textContent = `Showing ${db.donations.length} records`;
+}
+
+function updateDonationDonorSelect() {
+  const sel = document.getElementById('donation-donor');
+  sel.innerHTML = '<option value="">-- Select Donor --</option>' +
+    db.donors.map(d => `<option value="${d.donor_id}">${d.name}</option>`).join('');
+}
+
+function addDonation() {
+  const donor_id = parseInt(document.getElementById('donation-donor').value);
+  const amount = parseInt(document.getElementById('donation-amount').value);
+  const date = document.getElementById('donation-date').value;
+  if (!donor_id || !amount || !date) { showToast('Please fill all fields', 'error'); return; }
+  db.donations.push({ donation_id: nextIds.donation++, donor_id, amount, date });
+  closeModal('modal-donation');
+  clearForm(['donation-donor','donation-amount','donation-date']);
+  renderDonations();
+  renderDonors();
+  showToast('Donation recorded');
+  renderDashboard();
+  saveData();
+}
+
+// ============================================================
+// DELETE
+// ============================================================
+let pendingDelete = null;
+
+function confirmDelete(table, id, name) {
+  pendingDelete = { table, id };
+  document.getElementById('delete-name').textContent = name;
+  openModal('modal-delete');
+  document.getElementById('confirm-delete-btn').onclick = executeDelete;
+}
+
+function executeDelete() {
+  if (!pendingDelete) return;
+  const { table, id } = pendingDelete;
+  if (table === 'children') {
+    db.children = db.children.filter(x => x.child_id !== id);
+    renderChildren(); updateAdoptionChildSelect();
+  } else if (table === 'adoptions') {
+    db.adoptions = db.adoptions.filter(x => x.adoption_id !== id);
+    renderAdoptions();
+  } else if (table === 'staff') {
+    db.staff = db.staff.filter(x => x.staff_id !== id);
+    renderStaff();
+  } else if (table === 'donors') {
+    db.donors = db.donors.filter(x => x.donor_id !== id);
+    renderDonors(); updateDonationDonorSelect();
+  } else if (table === 'donations') {
+    db.donations = db.donations.filter(x => x.donation_id !== id);
+    renderDonations(); renderDonors();
+  }
+  closeModal('modal-delete');
+  showToast('Record deleted', 'error');
+  renderDashboard();
+  saveData();
+  pendingDelete = null;
+}
+
+// ============================================================
+// SEARCH / FILTER
+// ============================================================
+function filterTable(tableId, query) {
+  const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+  const q = query.toLowerCase();
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterByGender(val) {
+  const rows = document.querySelectorAll('#children-table tbody tr');
+  rows.forEach(row => {
+    if (!val) { row.style.display = ''; return; }
+    row.style.display = row.textContent.includes(val) ? '' : 'none';
+  });
+}
+
+function filterByStatus(tableId, val) {
+  const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+  rows.forEach(row => {
+    if (!val) { row.style.display = ''; return; }
+    row.style.display = row.textContent.includes(val) ? '' : 'none';
+  });
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type === 'error' ? ' error' : '');
+  toast.innerHTML = `<i class="fas fa-${type==='error'?'times-circle':'check-circle'}" style="color:${type==='error'?'var(--danger)':'var(--success)'}"></i> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function clearForm(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+// ============================================================
+// SQL PAGE
+// ============================================================
+
+function showSqlTab(name, el) {
+  document.querySelectorAll('.sql-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sql-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sql-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function h(sql) {
+  // syntax highlight SQL
+  return sql
+    .replace(/--[^\n]*/g, m => `<span class="cm">${m}</span>`)
+    .replace(/\b(CREATE\s+DATABASE|CREATE\s+TABLE|DROP\s+TABLE|DROP\s+DATABASE|USE|INSERT\s+INTO|VALUES|SELECT|FROM|WHERE|JOIN|INNER\s+JOIN|LEFT\s+JOIN|ON|GROUP\s+BY|ORDER\s+BY|HAVING|UPDATE|SET|DELETE|ALTER\s+TABLE|ADD|PRIMARY\s+KEY|FOREIGN\s+KEY|REFERENCES|NOT\s+NULL|AUTO_INCREMENT|DEFAULT|CONSTRAINT|IF\s+NOT\s+EXISTS|IF\s+EXISTS|DISTINCT|AS|AND|OR|IN|LIKE|BETWEEN|IS\s+NULL|IS\s+NOT\s+NULL|LIMIT|COUNT|SUM|AVG|MAX|MIN|CONCAT|NOW|CURDATE|ENGINE|CHARSET)\b/gi,
+      m => `<span class="kw">${m}</span>`)
+    .replace(/\b(child|adoption|donor|donation|staff|orphanage_db)\b/g,
+      m => `<span class="tb">${m}</span>`)
+    .replace(/'([^']*)'/g, m => `<span class="st">${m}</span>`)
+    .replace(/\b(\d+)\b/g, m => `<span class="nm">${m}</span>`);
+}
+
+function sqlBlock(title, desc, sql, icon = 'fas fa-code') {
+  const id = 'blk-' + Math.random().toString(36).slice(2);
+  return `
+  <div class="sql-block">
+    <div class="sql-block-header">
+      <div>
+        <div class="sql-title"><i class="${icon}"></i> ${title}</div>
+        <div class="sql-desc">${desc}</div>
+      </div>
+      <button class="copy-btn" onclick="copySql('${id}', this)"><i class="fas fa-copy"></i> Copy</button>
+    </div>
+    <pre class="sql-code" id="${id}">${h(sql.trim())}</pre>
+  </div>`;
+}
+
+function copySql(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAll() {
+  const allSql = allSqlText();
+  navigator.clipboard.writeText(allSql).then(() => showToast('All SQL copied to clipboard'));
+}
+
+function allSqlText() {
+  return [ddlSQL, dmlSQL, selectSQL, joinSQL, updateSQL, aggSQL].join('\n\n');
+}
+
+// ---- DDL ----
+const ddlSQL = `-- ============================================================
+-- DDL: CREATE DATABASE & TABLES
+-- Orphanage Management System
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS orphanage_db;
+USE orphanage_db;
+
+-- Table: child
+CREATE TABLE IF NOT EXISTS child (
+    child_id       INT          NOT NULL,
+    name           VARCHAR(50)  DEFAULT NULL,
+    age            INT          DEFAULT NULL,
+    gender         VARCHAR(10)  DEFAULT NULL,
+    admission_date DATE         DEFAULT NULL,
+    health_status  VARCHAR(30)  DEFAULT NULL,
+    PRIMARY KEY (child_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: adoption
+CREATE TABLE IF NOT EXISTS adoption (
+    adoption_id  INT         NOT NULL,
+    child_id     INT         DEFAULT NULL,
+    adopter_name VARCHAR(50) DEFAULT NULL,
+    status       VARCHAR(20) DEFAULT NULL,
+    PRIMARY KEY (adoption_id),
+    CONSTRAINT adoption_ibfk_1
+        FOREIGN KEY (child_id) REFERENCES child (child_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: donor
+CREATE TABLE IF NOT EXISTS donor (
+    donor_id INT         NOT NULL,
+    name     VARCHAR(50) DEFAULT NULL,
+    contact  VARCHAR(15) DEFAULT NULL,
+    PRIMARY KEY (donor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: donation
+CREATE TABLE IF NOT EXISTS donation (
+    donation_id INT  NOT NULL,
+    donor_id    INT  DEFAULT NULL,
+    amount      INT  DEFAULT NULL,
+    date        DATE DEFAULT NULL,
+    PRIMARY KEY (donation_id),
+    CONSTRAINT donation_ibfk_1
+        FOREIGN KEY (donor_id) REFERENCES donor (donor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table: staff
+CREATE TABLE IF NOT EXISTS staff (
+    staff_id INT         NOT NULL,
+    name     VARCHAR(50) DEFAULT NULL,
+    role     VARCHAR(50) DEFAULT NULL,
+    salary   INT         DEFAULT NULL,
+    contact  VARCHAR(15) DEFAULT NULL,
+    PRIMARY KEY (staff_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
+
+// ---- DML ----
+const dmlSQL = `-- ============================================================
+-- DML: INSERT SAMPLE DATA
+-- ============================================================
+
+-- Insert children
+INSERT INTO child (child_id, name, age, gender, admission_date, health_status) VALUES
+(1, 'Aisha Rahman',     7,  'Female', '2023-03-15', 'Good'),
+(2, 'Omar Farooq',      10, 'Male',   '2022-11-20', 'Fair'),
+(3, 'Fatima Noor',      5,  'Female', '2024-01-08', 'Good'),
+(4, 'Bilal Ahmed',      12, 'Male',   '2021-07-30', 'Under Treatment'),
+(5, 'Zara Khan',        8,  'Female', '2023-09-12', 'Good'),
+(6, 'Hassan Ali',       6,  'Male',   '2024-02-14', 'Good'),
+(7, 'Maryam Siddiqui',  9,  'Female', '2022-05-22', 'Fair'),
+(8, 'Yusuf Ibrahim',    11, 'Male',   '2023-12-01', 'Good');
+
+-- Insert donors
+INSERT INTO donor (donor_id, name, contact) VALUES
+(1, 'Al-Noor Foundation', '0300-1234567'),
+(2, 'Zakat Committee',    '0321-9876543'),
+(3, 'Mrs. Amina Hussain', '0333-5551234'),
+(4, 'Tech4Good Corp',     '0311-7778888'),
+(5, 'Anonymous Donor',    'N/A');
+
+-- Insert donations
+INSERT INTO donation (donation_id, donor_id, amount, date) VALUES
+(1, 1, 5000,  '2026-04-01'),
+(2, 2, 3200,  '2026-04-10'),
+(3, 3, 1500,  '2026-04-15'),
+(4, 1, 8000,  '2026-03-20'),
+(5, 4, 12000, '2026-03-05'),
+(6, 5, 2500,  '2026-02-28'),
+(7, 2, 4000,  '2026-02-14'),
+(8, 3, 1000,  '2026-01-30');
+
+-- Insert adoptions
+INSERT INTO adoption (adoption_id, child_id, adopter_name, status) VALUES
+(1, 3, 'Mr. & Mrs. Malik',       'Approved'),
+(2, 6, 'Dr. Sarah Johnson',      'Pending'),
+(3, 1, 'Ahmed & Layla Qureshi',  'Pending'),
+(4, 5, 'Robert & Emily Chen',    'Rejected');
+
+-- Insert staff
+INSERT INTO staff (staff_id, name, role, salary, contact) VALUES
+(1, 'Mrs. Khadija Bibi',  'Administrator', 45000, '0300-1112222'),
+(2, 'Mr. Tariq Mehmood',  'Caretaker',     25000, '0321-3334444'),
+(3, 'Dr. Nadia Iqbal',    'Doctor',        60000, '0333-5556666'),
+(4, 'Ms. Sana Perveen',   'Teacher',       30000, '0311-7778888'),
+(5, 'Mr. Imran Butt',     'Security',      20000, '0345-9990000'),
+(6, 'Mrs. Rukhsana Bano', 'Cook',          22000, '0300-1231231');`;
+
+// ---- SELECT ----
+const selectSQL = `-- ============================================================
+-- SELECT QUERIES
+-- ============================================================
+
+-- 1. View all children
+SELECT * FROM child;
+
+-- 2. View all children ordered by age
+SELECT * FROM child ORDER BY age ASC;
+
+-- 3. View only female children
+SELECT * FROM child WHERE gender = 'Female';
+
+-- 4. View children with poor or under-treatment health
+SELECT * FROM child
+WHERE health_status IN ('Poor', 'Under Treatment');
+
+-- 5. View children admitted after 2023
+SELECT * FROM child
+WHERE admission_date >= '2023-01-01'
+ORDER BY admission_date DESC;
+
+-- 6. View all pending adoptions
+SELECT * FROM adoption WHERE status = 'Pending';
+
+-- 7. View all approved adoptions
+SELECT * FROM adoption WHERE status = 'Approved';
+
+-- 8. View all staff sorted by salary descending
+SELECT * FROM staff ORDER BY salary DESC;
+
+-- 9. View staff with salary above 30000
+SELECT * FROM staff WHERE salary > 30000;
+
+-- 10. View all donations sorted by date
+SELECT * FROM donation ORDER BY date DESC;
+
+-- 11. View all donors
+SELECT * FROM donor ORDER BY name ASC;
+
+-- 12. Search child by name (partial match)
+SELECT * FROM child WHERE name LIKE '%Aisha%';`;
+
+// ---- JOIN ----
+const joinSQL = `-- ============================================================
+-- JOIN QUERIES
+-- ============================================================
+
+-- 1. Show each adoption with the child's full details
+SELECT
+    a.adoption_id,
+    c.name        AS child_name,
+    c.age,
+    c.gender,
+    a.adopter_name,
+    a.status
+FROM adoption a
+INNER JOIN child c ON a.child_id = c.child_id;
+
+-- 2. Show all children and their adoption status
+--    (includes children with no adoption record)
+SELECT
+    c.child_id,
+    c.name,
+    c.age,
+    c.gender,
+    c.health_status,
+    a.adopter_name,
+    a.status AS adoption_status
+FROM child c
+LEFT JOIN adoption a ON c.child_id = a.child_id;
+
+-- 3. Show each donation with donor name and contact
+SELECT
+    d.donation_id,
+    dn.name    AS donor_name,
+    dn.contact,
+    d.amount,
+    d.date
+FROM donation d
+INNER JOIN donor dn ON d.donor_id = dn.donor_id
+ORDER BY d.date DESC;
+
+-- 4. Show total donated per donor (with donor details)
+SELECT
+    dn.donor_id,
+    dn.name        AS donor_name,
+    dn.contact,
+    COUNT(d.donation_id) AS total_donations,
+    SUM(d.amount)        AS total_amount
+FROM donor dn
+LEFT JOIN donation d ON dn.donor_id = d.donor_id
+GROUP BY dn.donor_id, dn.name, dn.contact
+ORDER BY total_amount DESC;
+
+-- 5. Children who have been adopted (approved only)
+SELECT
+    c.name        AS child_name,
+    c.age,
+    a.adopter_name,
+    a.status
+FROM child c
+INNER JOIN adoption a ON c.child_id = a.child_id
+WHERE a.status = 'Approved';
+
+-- 6. Children who have NOT been adopted yet
+SELECT c.child_id, c.name, c.age, c.gender, c.health_status
+FROM child c
+LEFT JOIN adoption a ON c.child_id = a.child_id
+WHERE a.adoption_id IS NULL;`;
+
+// ---- UPDATE/DELETE ----
+const updateSQL = `-- ============================================================
+-- UPDATE & DELETE QUERIES
+-- ============================================================
+
+-- UPDATE: Change a child's health status
+UPDATE child
+SET health_status = 'Good'
+WHERE child_id = 4;
+
+-- UPDATE: Approve a pending adoption
+UPDATE adoption
+SET status = 'Approved'
+WHERE adoption_id = 2;
+
+-- UPDATE: Update staff salary
+UPDATE staff
+SET salary = 65000
+WHERE staff_id = 3;
+
+-- UPDATE: Update donor contact number
+UPDATE donor
+SET contact = '0300-9999999'
+WHERE donor_id = 1;
+
+-- UPDATE: Change adopter name
+UPDATE adoption
+SET adopter_name = 'Mr. & Mrs. Ahmed'
+WHERE adoption_id = 3;
+
+-- DELETE: Remove a rejected adoption record
+DELETE FROM adoption
+WHERE status = 'Rejected';
+
+-- DELETE: Remove a specific donation record
+DELETE FROM donation
+WHERE donation_id = 8;
+
+-- DELETE: Remove a staff member
+DELETE FROM staff
+WHERE staff_id = 5;
+
+-- DELETE: Remove a child record (only if no adoption linked)
+DELETE FROM child
+WHERE child_id = 8
+  AND child_id NOT IN (SELECT child_id FROM adoption);
+
+-- DROP TABLES (cleanup — use carefully)
+-- DROP TABLE IF EXISTS adoption;
+-- DROP TABLE IF EXISTS donation;
+-- DROP TABLE IF EXISTS child;
+-- DROP TABLE IF EXISTS donor;
+-- DROP TABLE IF EXISTS staff;`;
+
+// ---- AGGREGATE ----
+const aggSQL = `-- ============================================================
+-- AGGREGATE & ANALYTICAL QUERIES
+-- ============================================================
+
+-- 1. Total number of children
+SELECT COUNT(*) AS total_children FROM child;
+
+-- 2. Average age of children
+SELECT AVG(age) AS average_age FROM child;
+
+-- 3. Youngest and oldest child
+SELECT
+    MIN(age) AS youngest,
+    MAX(age) AS oldest
+FROM child;
+
+-- 4. Count children by gender
+SELECT gender, COUNT(*) AS count
+FROM child
+GROUP BY gender;
+
+-- 5. Count children by health status
+SELECT health_status, COUNT(*) AS count
+FROM child
+GROUP BY health_status
+ORDER BY count DESC;
+
+-- 6. Total donation amount received
+SELECT SUM(amount) AS total_donations FROM donation;
+
+-- 7. Average donation amount
+SELECT AVG(amount) AS avg_donation FROM donation;
+
+-- 8. Highest single donation
+SELECT MAX(amount) AS highest_donation FROM donation;
+
+-- 9. Monthly donation totals
+SELECT
+    MONTH(date)  AS month,
+    YEAR(date)   AS year,
+    SUM(amount)  AS monthly_total,
+    COUNT(*)     AS num_donations
+FROM donation
+GROUP BY YEAR(date), MONTH(date)
+ORDER BY year DESC, month DESC;
+
+-- 10. Count adoptions by status
+SELECT status, COUNT(*) AS count
+FROM adoption
+GROUP BY status;
+
+-- 11. Total salary expense per month
+SELECT SUM(salary) AS monthly_salary_expense FROM staff;
+
+-- 12. Count staff by role
+SELECT role, COUNT(*) AS count
+FROM staff
+GROUP BY role
+ORDER BY count DESC;
+
+-- 13. Donors who donated more than 5000 total
+SELECT
+    dn.name,
+    SUM(d.amount) AS total_donated
+FROM donor dn
+JOIN donation d ON dn.donor_id = d.donor_id
+GROUP BY dn.donor_id, dn.name
+HAVING SUM(d.amount) > 5000
+ORDER BY total_donated DESC;
+
+-- 14. Children admitted per year
+SELECT
+    YEAR(admission_date) AS year,
+    COUNT(*) AS children_admitted
+FROM child
+GROUP BY YEAR(admission_date)
+ORDER BY year DESC;`;
+
+function renderSqlPage() {
+  document.getElementById('ddl-blocks').innerHTML =
+    sqlBlock('Create Database', 'Initialize the orphanage database', ddlSQL.split('\n\n').slice(0,1).join('\n\n'), 'fas fa-database') +
+    sqlBlock('Create Table: child', 'Stores all children records', ddlSQL.split('-- Table: child')[1].split('-- Table:')[0], 'fas fa-table') +
+    sqlBlock('Create Table: adoption', 'Stores adoption requests linked to children', ddlSQL.split('-- Table: adoption')[1].split('-- Table:')[0], 'fas fa-table') +
+    sqlBlock('Create Table: donor', 'Stores donor information', ddlSQL.split('-- Table: donor')[1].split('-- Table:')[0], 'fas fa-table') +
+    sqlBlock('Create Table: donation', 'Stores donation transactions linked to donors', ddlSQL.split('-- Table: donation')[1].split('-- Table:')[0], 'fas fa-table') +
+    sqlBlock('Create Table: staff', 'Stores staff members and their roles', ddlSQL.split('-- Table: staff')[1], 'fas fa-table');
+
+  document.getElementById('dml-blocks').innerHTML =
+    sqlBlock('Insert Children', 'Sample data for 8 children', dmlSQL.split('-- Insert children')[1].split('-- Insert')[0], 'fas fa-child') +
+    sqlBlock('Insert Donors', 'Sample data for 5 donors', dmlSQL.split('-- Insert donors')[1].split('-- Insert')[0], 'fas fa-hand-holding-heart') +
+    sqlBlock('Insert Donations', 'Sample data for 8 donation records', dmlSQL.split('-- Insert donations')[1].split('-- Insert')[0], 'fas fa-donate') +
+    sqlBlock('Insert Adoptions', 'Sample data for 4 adoption records', dmlSQL.split('-- Insert adoptions')[1].split('-- Insert')[0], 'fas fa-hands-holding-child') +
+    sqlBlock('Insert Staff', 'Sample data for 6 staff members', dmlSQL.split('-- Insert staff')[1], 'fas fa-user-tie');
+
+  // Split select queries into individual blocks
+  const selParts = selectSQL.split(/\n(?=-- \d+\.)/);
+  document.getElementById('select-blocks').innerHTML =
+    '<div class="sql-grid">' +
+    selParts.slice(1).map(q => {
+      const title = q.match(/-- \d+\. (.+)/)?.[1] || 'Query';
+      return sqlBlock(title, '', q.replace(/-- .+\n/, '').trim(), 'fas fa-search');
+    }).join('') +
+    '</div>';
+
+  const joinParts = joinSQL.split(/\n(?=-- \d+\.)/);
+  document.getElementById('join-blocks').innerHTML =
+    joinParts.slice(1).map(q => {
+      const title = q.match(/-- \d+\. (.+)/)?.[1] || 'Join Query';
+      return sqlBlock(title, '', q.replace(/-- .+\n/, '').trim(), 'fas fa-link');
+    }).join('');
+
+  const updParts = updateSQL.split(/\n(?=-- (UPDATE|DELETE|DROP))/);
+  document.getElementById('update-blocks').innerHTML =
+    '<div class="sql-grid">' +
+    updParts.slice(1).map(q => {
+      const title = q.split('\n')[0].replace('-- ', '');
+      return sqlBlock(title, '', q.replace(/-- .+\n/, '').trim(), 'fas fa-edit');
+    }).join('') +
+    '</div>';
+
+  const aggParts = aggSQL.split(/\n(?=-- \d+\.)/);
+  document.getElementById('agg-blocks').innerHTML =
+    '<div class="sql-grid">' +
+    aggParts.slice(1).map(q => {
+      const title = q.match(/-- \d+\. (.+)/)?.[1] || 'Aggregate';
+      return sqlBlock(title, '', q.replace(/-- .+\n/, '').trim(), 'fas fa-calculator');
+    }).join('') +
+    '</div>';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  renderDashboard();
+  renderChildren();
+  renderAdoptions();
+  renderStaff();
+  renderDonors();
+  renderDonations();
+  updateAdoptionChildSelect();
+  updateDonationDonorSelect();
+  renderSqlPage();
+  // Set today as default date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('child-admission').value = today;
+  document.getElementById('donation-date').value = today;
+});
+</script>
+</body>
+</html>
