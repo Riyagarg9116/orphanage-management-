@@ -1,0 +1,758 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orphanage Management System — Project Documentation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #2e7d6e;
+    --primary-dark: #1e5c52;
+    --accent: #f4a261;
+    --bg: #f0f4f3;
+    --text: #2d3748;
+    --text-light: #718096;
+    --border: #e2e8f0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); }
+
+  /* TOP NAV */
+  .topnav {
+    background:#1a3c35; padding:0 40px; height:60px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+  }
+  .topnav-logo { display:flex; align-items:center; gap:10px; color:white; text-decoration:none; }
+  .topnav-logo .icon { width:36px; height:36px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .topnav-logo span { font-size:15px; font-weight:700; }
+  .topnav-links { display:flex; gap:6px; }
+  .topnav-links a {
+    color:rgba(200,221,217,0.7); text-decoration:none; font-size:13px; font-weight:500;
+    padding:6px 14px; border-radius:6px; transition:all 0.2s;
+  }
+  .topnav-links a:hover { background:rgba(255,255,255,0.08); color:white; }
+  .topnav-links a.active { background:var(--primary); color:white; }
+
+  /* HERO */
+  .hero {
+    background:linear-gradient(135deg,#1a3c35 0%,#2e7d6e 60%,#3fa08e 100%);
+    padding:70px 40px 60px; text-align:center; color:white;
+  }
+  .hero-badge {
+    display:inline-block; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25);
+    padding:5px 16px; border-radius:20px; font-size:12px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase; margin-bottom:20px;
+  }
+  .hero h1 { font-size:38px; font-weight:800; margin-bottom:14px; line-height:1.2; }
+  .hero p { font-size:16px; opacity:0.85; max-width:600px; margin:0 auto 28px; line-height:1.7; }
+  .hero-meta { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+  .hero-meta-item { display:flex; align-items:center; gap:8px; font-size:13px; opacity:0.8; }
+  .hero-btns { display:flex; gap:12px; justify-content:center; margin-top:28px; flex-wrap:wrap; }
+  .btn-hero {
+    padding:11px 24px; border-radius:8px; font-size:14px; font-weight:600;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:all 0.2s;
+  }
+  .btn-hero-primary { background:var(--accent); color:white; }
+  .btn-hero-primary:hover { background:#e8924f; }
+  .btn-hero-outline { background:rgba(255,255,255,0.12); color:white; border:1.5px solid rgba(255,255,255,0.3); }
+  .btn-hero-outline:hover { background:rgba(255,255,255,0.2); }
+
+  /* LAYOUT */
+  .container { max-width:1100px; margin:0 auto; padding:0 24px; }
+  .section { padding:52px 0; }
+  .section-title {
+    font-size:26px; font-weight:800; color:var(--text); margin-bottom:8px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title i { color:var(--primary); }
+  .section-sub { font-size:14px; color:var(--text-light); margin-bottom:32px; }
+  .divider { border:none; border-top:1px solid var(--border); margin:0; }
+
+  /* CARDS */
+  .card { background:white; border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); border:1px solid var(--border); }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+  /* OVERVIEW CARDS */
+  .overview-card { background:white; border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); border:1px solid var(--border); text-align:center; }
+  .overview-icon { width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 14px; }
+  .overview-icon.green { background:#e6f4f1; color:var(--primary); }
+  .overview-icon.orange { background:#fef3e2; color:var(--accent); }
+  .overview-icon.blue { background:#ebf4ff; color:#3182ce; }
+  .overview-icon.red { background:#fff5f5; color:#e53e3e; }
+  .overview-icon.purple { background:#faf5ff; color:#805ad5; }
+  .overview-icon.teal { background:#e6fffa; color:#319795; }
+  .overview-card h3 { font-size:15px; font-weight:700; margin-bottom:6px; }
+  .overview-card p { font-size:12px; color:var(--text-light); line-height:1.6; }
+
+  /* TABLE */
+  .doc-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .doc-table th { background:#f7faf9; padding:11px 14px; text-align:left; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border); }
+  .doc-table td { padding:11px 14px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:top; }
+  .doc-table tr:last-child td { border-bottom:none; }
+  .doc-table tr:hover td { background:#f7faf9; }
+  .pk { background:#fef3e2; color:#c05621; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:800; }
+  .fk { background:#ebf4ff; color:#2b6cb0; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:800; }
+  .dtype { background:#f7fafc; color:#4a5568; padding:2px 7px; border-radius:4px; font-size:11px; font-family:monospace; }
+
+  /* SQL BLOCK */
+  .sql-block { background:#1a2332; border-radius:var(--radius); overflow:hidden; margin-bottom:16px; }
+  .sql-block-head { background:#141c28; padding:10px 16px; font-size:12px; font-weight:700; color:#7dd3c8; display:flex; align-items:center; gap:8px; }
+  pre.sql { padding:16px; margin:0; font-family:'Consolas','Courier New',monospace; font-size:12.5px; line-height:1.7; color:#e2e8f0; overflow-x:auto; }
+  .kw { color:#f6ad55; font-weight:700; }
+  .tb { color:#68d391; }
+  .st { color:#fc8181; }
+  .nm { color:#b794f4; }
+  .cm { color:#718096; font-style:italic; }
+
+  /* FEATURE LIST */
+  .feature-list { list-style:none; }
+  .feature-list li { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .feature-list li:last-child { border-bottom:none; }
+  .feature-list li i { color:var(--primary); margin-top:2px; flex-shrink:0; }
+
+  /* STEPS */
+  .steps { display:flex; flex-direction:column; gap:16px; }
+  .step { display:flex; gap:16px; align-items:flex-start; }
+  .step-num { width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .step-content h4 { font-size:14px; font-weight:700; margin-bottom:4px; }
+  .step-content p { font-size:13px; color:var(--text-light); line-height:1.6; }
+
+  /* BADGE */
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .badge-green { background:#e6f4f1; color:var(--primary); }
+  .badge-orange { background:#fef3e2; color:#c05621; }
+  .badge-blue { background:#ebf4ff; color:#2b6cb0; }
+  .badge-red { background:#fff5f5; color:#e53e3e; }
+  .badge-gray { background:#f7fafc; color:#718096; border:1px solid var(--border); }
+
+  /* ER DIAGRAM */
+  .er-wrap { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; padding:20px 0; }
+  .er-table { border:2px solid var(--primary); border-radius:10px; overflow:hidden; min-width:155px; font-size:12px; }
+  .er-head { background:var(--primary); color:white; padding:8px 14px; font-weight:700; font-size:13px; text-align:center; }
+  .er-body { background:white; }
+  .er-row { padding:6px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; }
+  .er-row:last-child { border-bottom:none; }
+  .er-type { color:var(--text-light); font-size:10px; margin-left:auto; font-family:monospace; }
+  .er-arrow { display:flex; align-items:center; color:var(--text-light); font-size:22px; padding-top:36px; }
+
+  /* TECH STACK */
+  .tech-item { display:flex; align-items:center; gap:12px; padding:14px; background:white; border-radius:10px; border:1px solid var(--border); box-shadow:var(--shadow); }
+  .tech-icon { width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .tech-item h4 { font-size:13px; font-weight:700; }
+  .tech-item p { font-size:11px; color:var(--text-light); }
+
+  /* FOOTER */
+  footer { background:#1a3c35; color:rgba(200,221,217,0.7); text-align:center; padding:28px; font-size:13px; margin-top:40px; }
+  footer strong { color:white; }
+
+  /* PRINT */
+  @media print {
+    .topnav, .hero-btns, .btn-hero { display:none; }
+    .hero { padding:30px 20px; }
+    body { background:white; }
+    .section { padding:24px 0; }
+  }
+  @media (max-width:768px) {
+    .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+    .hero h1 { font-size:26px; }
+    .topnav-links { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">
+    <div class="icon"><i class="fas fa-heart"></i></div>
+    <span>HopeHaven OMS</span>
+  </a>
+  <div class="topnav-links">
+    <a href="index.html"><i class="fas fa-desktop"></i> Live App</a>
+    <a href="#overview">Overview</a>
+    <a href="#schema">Database</a>
+    <a href="#queries">Queries</a>
+    <a href="#features">Features</a>
+    <a href="#" onclick="window.print()" class="active"><i class="fas fa-print"></i> Print</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><i class="fas fa-database"></i> &nbsp; DBMS College Project</div>
+  <h1>Orphanage Management System</h1>
+  <p>A complete database-driven web application to manage children, adoptions, staff, donors and donations for an orphanage — built with MySQL and a fully functional frontend.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><i class="fas fa-user"></i> Submitted by: Student</div>
+    <div class="hero-meta-item"><i class="fas fa-calendar"></i> May 2026</div>
+    <div class="hero-meta-item"><i class="fas fa-table"></i> 5 Tables · 30+ Queries</div>
+    <div class="hero-meta-item"><i class="fas fa-code-branch"></i> MySQL · HTML · CSS · JS</div>
+  </div>
+  <div class="hero-btns">
+    <a href="index.html" class="btn-hero btn-hero-primary"><i class="fas fa-play"></i> Open Live App</a>
+    <a href="#schema" class="btn-hero btn-hero-outline"><i class="fas fa-database"></i> View Schema</a>
+  </div>
+</div>
+
+<!-- SECTION 1: PROJECT OVERVIEW -->
+<div class="section" id="overview">
+  <div class="container">
+    <div class="section-title"><i class="fas fa-info-circle"></i> Project Overview</div>
+    <div class="section-sub">What this system does and why it was built</div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-bullseye" style="color:var(--primary);margin-right:8px;"></i>Objective</h3>
+        <p style="font-size:13px;color:var(--text-light);line-height:1.8;">
+          The Orphanage Management System (OMS) is a database management project designed to digitize and streamline the operations of an orphanage. The system replaces manual record-keeping with a structured relational database that stores and manages information about children, staff, donors, donations, and adoption processes.
+        </p>
+        <p style="font-size:13px;color:var(--text-light);line-height:1.8;margin-top:10px;">
+          The project demonstrates core DBMS concepts including entity-relationship modeling, normalization, SQL DDL/DML operations, JOIN queries, aggregate functions, and referential integrity through foreign keys.
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;"><i class="fas fa-lightbulb" style="color:var(--accent);margin-right:8px;"></i>Problem Statement</h3>
+        <p style="font-size:13px;color:var(--text-light);line-height:1.8;">
+          Orphanages typically manage large amounts of sensitive data manually — paper registers for children, handwritten donation receipts, and untracked adoption records. This leads to:
+        </p>
+        <ul style="font-size:13px;color:var(--text-light);line-height:2;margin-top:8px;padding-left:18px;">
+          <li>Loss of important records</li>
+          <li>Difficulty tracking adoption status</li>
+          <li>No visibility into donation history</li>
+          <li>Inability to generate reports quickly</li>
+          <li>No centralized staff management</li>
+        </ul>
+        <p style="font-size:13px;color:var(--text-light);line-height:1.8;margin-top:10px;">
+          This system solves all of the above with a structured relational database and a user-friendly interface.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="overview-card">
+        <div class="overview-icon green"><i class="fas fa-child"></i></div>
+        <h3>Children</h3>
+        <p>Track every child's name, age, gender, admission date and health status</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-icon orange"><i class="fas fa-hands-holding-child"></i></div>
+        <h3>Adoptions</h3>
+        <p>Manage adoption requests, link them to children and track approval status</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-icon blue"><i class="fas fa-hand-holding-heart"></i></div>
+        <h3>Donors</h3>
+        <p>Maintain a registry of donors with contact information and donation history</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-icon red"><i class="fas fa-donate"></i></div>
+        <h3>Donations</h3>
+        <p>Record every financial contribution with amount, date and donor reference</p>
+      </div>
+      <div class="overview-card" style="grid-column:span 2;">
+        <div class="overview-icon purple"><i class="fas fa-user-tie"></i></div>
+        <h3>Staff</h3>
+        <p>Manage all staff members — their roles, salaries and contact details</p>
+      </div>
+      <div class="overview-card" style="grid-column:span 2;">
+        <div class="overview-icon teal"><i class="fas fa-chart-bar"></i></div>
+        <h3>Dashboard & Reports</h3>
+        <p>Visual dashboard with stats, monthly donation chart and recent activity feed</p>
+      </div>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- SECTION 2: ER DIAGRAM -->
+<div class="section" id="schema">
+  <div class="container">
+    <div class="section-title"><i class="fas fa-project-diagram"></i> Entity Relationship Diagram</div>
+    <div class="section-sub">Visual representation of all tables and their relationships</div>
+
+    <div class="card" style="margin-bottom:28px;">
+      <div class="er-wrap">
+        <div class="er-table">
+          <div class="er-head">child</div>
+          <div class="er-body">
+            <div class="er-row"><span class="pk">PK</span> child_id <span class="er-type">INT</span></div>
+            <div class="er-row">name <span class="er-type">VARCHAR(50)</span></div>
+            <div class="er-row">age <span class="er-type">INT</span></div>
+            <div class="er-row">gender <span class="er-type">VARCHAR(10)</span></div>
+            <div class="er-row">admission_date <span class="er-type">DATE</span></div>
+            <div class="er-row">health_status <span class="er-type">VARCHAR(30)</span></div>
+          </div>
+        </div>
+        <div class="er-arrow" title="One child can have one adoption">1 ──── 1</div>
+        <div class="er-table">
+          <div class="er-head">adoption</div>
+          <div class="er-body">
+            <div class="er-row"><span class="pk">PK</span> adoption_id <span class="er-type">INT</span></div>
+            <div class="er-row"><span class="fk">FK</span> child_id <span class="er-type">INT</span></div>
+            <div class="er-row">adopter_name <span class="er-type">VARCHAR(50)</span></div>
+            <div class="er-row">status <span class="er-type">VARCHAR(20)</span></div>
+          </div>
+        </div>
+        <div class="er-arrow" style="padding-top:0;align-self:center;font-size:14px;color:#718096;">
+          &nbsp;&nbsp;&nbsp;
+        </div>
+        <div class="er-table">
+          <div class="er-head">donor</div>
+          <div class="er-body">
+            <div class="er-row"><span class="pk">PK</span> donor_id <span class="er-type">INT</span></div>
+            <div class="er-row">name <span class="er-type">VARCHAR(50)</span></div>
+            <div class="er-row">contact <span class="er-type">VARCHAR(15)</span></div>
+          </div>
+        </div>
+        <div class="er-arrow" style="padding-top:0;align-self:center;" title="One donor can make many donations">1 ──── N</div>
+        <div class="er-table">
+          <div class="er-head">donation</div>
+          <div class="er-body">
+            <div class="er-row"><span class="pk">PK</span> donation_id <span class="er-type">INT</span></div>
+            <div class="er-row"><span class="fk">FK</span> donor_id <span class="er-type">INT</span></div>
+            <div class="er-row">amount <span class="er-type">INT</span></div>
+            <div class="er-row">date <span class="er-type">DATE</span></div>
+          </div>
+        </div>
+        <div class="er-arrow" style="padding-top:0;align-self:center;font-size:14px;color:#718096;">&nbsp;&nbsp;&nbsp;</div>
+        <div class="er-table">
+          <div class="er-head">staff</div>
+          <div class="er-body">
+            <div class="er-row"><span class="pk">PK</span> staff_id <span class="er-type">INT</span></div>
+            <div class="er-row">name <span class="er-type">VARCHAR(50)</span></div>
+            <div class="er-row">role <span class="er-type">VARCHAR(50)</span></div>
+            <div class="er-row">salary <span class="er-type">INT</span></div>
+            <div class="er-row">contact <span class="er-type">VARCHAR(15)</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--text-light);"><span class="pk">PK</span> &nbsp;Primary Key — unique identifier for each record</span>
+        <span style="font-size:12px;color:var(--text-light);"><span class="fk">FK</span> &nbsp;Foreign Key — links to another table's primary key</span>
+        <span style="font-size:12px;color:var(--text-light);">1 ──── N &nbsp;One-to-Many relationship</span>
+        <span style="font-size:12px;color:var(--text-light);">1 ──── 1 &nbsp;One-to-One relationship</span>
+      </div>
+    </div>
+
+    <!-- TABLE SCHEMAS -->
+    <div class="section-title" style="font-size:20px;margin-bottom:8px;"><i class="fas fa-table"></i> Table Schemas</div>
+    <div class="section-sub">Detailed column definitions for all 5 tables</div>
+
+    <div class="grid-2" style="gap:20px;">
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-child" style="margin-right:6px;"></i>Table: child</h3>
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>child_id</td><td><span class="dtype">INT</span></td><td><span class="pk">PK</span></td><td>Unique child identifier</td></tr>
+            <tr><td>name</td><td><span class="dtype">VARCHAR(50)</span></td><td>—</td><td>Full name of the child</td></tr>
+            <tr><td>age</td><td><span class="dtype">INT</span></td><td>—</td><td>Age in years</td></tr>
+            <tr><td>gender</td><td><span class="dtype">VARCHAR(10)</span></td><td>—</td><td>Male / Female</td></tr>
+            <tr><td>admission_date</td><td><span class="dtype">DATE</span></td><td>—</td><td>Date admitted to orphanage</td></tr>
+            <tr><td>health_status</td><td><span class="dtype">VARCHAR(30)</span></td><td>—</td><td>Good / Fair / Poor / Under Treatment</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-hands-holding-child" style="margin-right:6px;"></i>Table: adoption</h3>
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>adoption_id</td><td><span class="dtype">INT</span></td><td><span class="pk">PK</span></td><td>Unique adoption record ID</td></tr>
+            <tr><td>child_id</td><td><span class="dtype">INT</span></td><td><span class="fk">FK</span></td><td>References child(child_id)</td></tr>
+            <tr><td>adopter_name</td><td><span class="dtype">VARCHAR(50)</span></td><td>—</td><td>Full name of the adopter</td></tr>
+            <tr><td>status</td><td><span class="dtype">VARCHAR(20)</span></td><td>—</td><td>Pending / Approved / Rejected</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-hand-holding-heart" style="margin-right:6px;"></i>Table: donor</h3>
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>donor_id</td><td><span class="dtype">INT</span></td><td><span class="pk">PK</span></td><td>Unique donor identifier</td></tr>
+            <tr><td>name</td><td><span class="dtype">VARCHAR(50)</span></td><td>—</td><td>Full name or organization name</td></tr>
+            <tr><td>contact</td><td><span class="dtype">VARCHAR(15)</span></td><td>—</td><td>Phone number</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-donate" style="margin-right:6px;"></i>Table: donation</h3>
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>donation_id</td><td><span class="dtype">INT</span></td><td><span class="pk">PK</span></td><td>Unique donation record ID</td></tr>
+            <tr><td>donor_id</td><td><span class="dtype">INT</span></td><td><span class="fk">FK</span></td><td>References donor(donor_id)</td></tr>
+            <tr><td>amount</td><td><span class="dtype">INT</span></td><td>—</td><td>Donation amount in PKR/USD</td></tr>
+            <tr><td>date</td><td><span class="dtype">DATE</span></td><td>—</td><td>Date of donation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="grid-column:span 2;">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-user-tie" style="margin-right:6px;"></i>Table: staff</h3>
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>staff_id</td><td><span class="dtype">INT</span></td><td><span class="pk">PK</span></td><td>Unique staff identifier</td></tr>
+            <tr><td>name</td><td><span class="dtype">VARCHAR(50)</span></td><td>—</td><td>Full name of staff member</td></tr>
+            <tr><td>role</td><td><span class="dtype">VARCHAR(50)</span></td><td>—</td><td>Job role (Caretaker, Doctor, Teacher, etc.)</td></tr>
+            <tr><td>salary</td><td><span class="dtype">INT</span></td><td>—</td><td>Monthly salary</td></tr>
+            <tr><td>contact</td><td><span class="dtype">VARCHAR(15)</span></td><td>—</td><td>Phone number</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+<hr class="divider">
+a p p e n d   t e s t  
+ <!-- SECTION 3: SQL QUERIES -->
+<div class="section" id="queries">
+  <div class="container">
+    <div class="section-title"><i class="fas fa-code"></i> SQL Queries</div>
+    <div class="section-sub">All DDL, DML, SELECT, JOIN, UPDATE, DELETE and Aggregate queries used in this project</div>
+
+    <div style="margin-bottom:24px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text);">DDL — Create Tables</h3>
+      <div class="sql-block">
+        <div class="sql-block-head"><i class="fas fa-database"></i> Create Database &amp; Tables</div>
+        <pre class="sql"><span class="cm">-- Create and select the database</span>
+<span class="kw">CREATE DATABASE IF NOT EXISTS</span> <span class="tb">orphanage_db</span>;
+<span class="kw">USE</span> <span class="tb">orphanage_db</span>;
+
+<span class="cm">-- Table 1: child</span>
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tb">child</span> (
+    child_id       <span class="kw">INT</span>          <span class="kw">NOT NULL</span>,
+    name           <span class="kw">VARCHAR</span>(<span class="nm">50</span>)  <span class="kw">DEFAULT NULL</span>,
+    age            <span class="kw">INT</span>          <span class="kw">DEFAULT NULL</span>,
+    gender         <span class="kw">VARCHAR</span>(<span class="nm">10</span>)  <span class="kw">DEFAULT NULL</span>,
+    admission_date <span class="kw">DATE</span>         <span class="kw">DEFAULT NULL</span>,
+    health_status  <span class="kw">VARCHAR</span>(<span class="nm">30</span>)  <span class="kw">DEFAULT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (child_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+<span class="cm">-- Table 2: adoption</span>
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tb">adoption</span> (
+    adoption_id  <span class="kw">INT</span>         <span class="kw">NOT NULL</span>,
+    child_id     <span class="kw">INT</span>         <span class="kw">DEFAULT NULL</span>,
+    adopter_name <span class="kw">VARCHAR</span>(<span class="nm">50</span>) <span class="kw">DEFAULT NULL</span>,
+    status       <span class="kw">VARCHAR</span>(<span class="nm">20</span>) <span class="kw">DEFAULT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (adoption_id),
+    <span class="kw">FOREIGN KEY</span> (child_id) <span class="kw">REFERENCES</span> <span class="tb">child</span>(child_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+<span class="cm">-- Table 3: donor</span>
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tb">donor</span> (
+    donor_id <span class="kw">INT</span>         <span class="kw">NOT NULL</span>,
+    name     <span class="kw">VARCHAR</span>(<span class="nm">50</span>) <span class="kw">DEFAULT NULL</span>,
+    contact  <span class="kw">VARCHAR</span>(<span class="nm">15</span>) <span class="kw">DEFAULT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (donor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+<span class="cm">-- Table 4: donation</span>
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tb">donation</span> (
+    donation_id <span class="kw">INT</span>  <span class="kw">NOT NULL</span>,
+    donor_id    <span class="kw">INT</span>  <span class="kw">DEFAULT NULL</span>,
+    amount      <span class="kw">INT</span>  <span class="kw">DEFAULT NULL</span>,
+    date        <span class="kw">DATE DEFAULT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (donation_id),
+    <span class="kw">FOREIGN KEY</span> (donor_id) <span class="kw">REFERENCES</span> <span class="tb">donor</span>(donor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+<span class="cm">-- Table 5: staff</span>
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tb">staff</span> (
+    staff_id <span class="kw">INT</span>         <span class="kw">NOT NULL</span>,
+    name     <span class="kw">VARCHAR</span>(<span class="nm">50</span>) <span class="kw">DEFAULT NULL</span>,
+    role     <span class="kw">VARCHAR</span>(<span class="nm">50</span>) <span class="kw">DEFAULT NULL</span>,
+    salary   <span class="kw">INT</span>         <span class="kw">DEFAULT NULL</span>,
+    contact  <span class="kw">VARCHAR</span>(<span class="nm">15</span>) <span class="kw">DEFAULT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (staff_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;</pre>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">DML — Insert Sample Data</h3>
+      <div class="sql-block">
+        <div class="sql-block-head"><i class="fas fa-plus-circle"></i> INSERT INTO all tables</div>
+        <pre class="sql"><span class="kw">INSERT INTO</span> <span class="tb">child</span> (child_id, name, age, gender, admission_date, health_status) <span class="kw">VALUES</span>
+(<span class="nm">1</span>, <span class="st">'Aisha Rahman'</span>,    <span class="nm">7</span>,  <span class="st">'Female'</span>, <span class="st">'2023-03-15'</span>, <span class="st">'Good'</span>),
+(<span class="nm">2</span>, <span class="st">'Omar Farooq'</span>,     <span class="nm">10</span>, <span class="st">'Male'</span>,   <span class="st">'2022-11-20'</span>, <span class="st">'Fair'</span>),
+(<span class="nm">3</span>, <span class="st">'Fatima Noor'</span>,     <span class="nm">5</span>,  <span class="st">'Female'</span>, <span class="st">'2024-01-08'</span>, <span class="st">'Good'</span>),
+(<span class="nm">4</span>, <span class="st">'Bilal Ahmed'</span>,     <span class="nm">12</span>, <span class="st">'Male'</span>,   <span class="st">'2021-07-30'</span>, <span class="st">'Under Treatment'</span>),
+(<span class="nm">5</span>, <span class="st">'Zara Khan'</span>,       <span class="nm">8</span>,  <span class="st">'Female'</span>, <span class="st">'2023-09-12'</span>, <span class="st">'Good'</span>),
+(<span class="nm">6</span>, <span class="st">'Hassan Ali'</span>,      <span class="nm">6</span>,  <span class="st">'Male'</span>,   <span class="st">'2024-02-14'</span>, <span class="st">'Good'</span>),
+(<span class="nm">7</span>, <span class="st">'Maryam Siddiqui'</span>, <span class="nm">9</span>,  <span class="st">'Female'</span>, <span class="st">'2022-05-22'</span>, <span class="st">'Fair'</span>),
+(<span class="nm">8</span>, <span class="st">'Yusuf Ibrahim'</span>,   <span class="nm">11</span>, <span class="st">'Male'</span>,   <span class="st">'2023-12-01'</span>, <span class="st">'Good'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tb">donor</span> (donor_id, name, contact) <span class="kw">VALUES</span>
+(<span class="nm">1</span>, <span class="st">'Al-Noor Foundation'</span>, <span class="st">'0300-1234567'</span>),
+(<span class="nm">2</span>, <span class="st">'Zakat Committee'</span>,    <span class="st">'0321-9876543'</span>),
+(<span class="nm">3</span>, <span class="st">'Mrs. Amina Hussain'</span>, <span class="st">'0333-5551234'</span>),
+(<span class="nm">4</span>, <span class="st">'Tech4Good Corp'</span>,     <span class="st">'0311-7778888'</span>),
+(<span class="nm">5</span>, <span class="st">'Anonymous Donor'</span>,    <span class="st">'N/A'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tb">donation</span> (donation_id, donor_id, amount, date) <span class="kw">VALUES</span>
+(<span class="nm">1</span>, <span class="nm">1</span>, <span class="nm">5000</span>,  <span class="st">'2026-04-01'</span>),
+(<span class="nm">2</span>, <span class="nm">2</span>, <span class="nm">3200</span>,  <span class="st">'2026-04-10'</span>),
+(<span class="nm">3</span>, <span class="nm">3</span>, <span class="nm">1500</span>,  <span class="st">'2026-04-15'</span>),
+(<span class="nm">4</span>, <span class="nm">1</span>, <span class="nm">8000</span>,  <span class="st">'2026-03-20'</span>),
+(<span class="nm">5</span>, <span class="nm">4</span>, <span class="nm">12000</span>, <span class="st">'2026-03-05'</span>),
+(<span class="nm">6</span>, <span class="nm">5</span>, <span class="nm">2500</span>,  <span class="st">'2026-02-28'</span>),
+(<span class="nm">7</span>, <span class="nm">2</span>, <span class="nm">4000</span>,  <span class="st">'2026-02-14'</span>),
+(<span class="nm">8</span>, <span class="nm">3</span>, <span class="nm">1000</span>,  <span class="st">'2026-01-30'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tb">adoption</span> (adoption_id, child_id, adopter_name, status) <span class="kw">VALUES</span>
+(<span class="nm">1</span>, <span class="nm">3</span>, <span class="st">'Mr. and Mrs. Malik'</span>,      <span class="st">'Approved'</span>),
+(<span class="nm">2</span>, <span class="nm">6</span>, <span class="st">'Dr. Sarah Johnson'</span>,       <span class="st">'Pending'</span>),
+(<span class="nm">3</span>, <span class="nm">1</span>, <span class="st">'Ahmed and Layla Qureshi'</span>, <span class="st">'Pending'</span>),
+(<span class="nm">4</span>, <span class="nm">5</span>, <span class="st">'Robert and Emily Chen'</span>,   <span class="st">'Rejected'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tb">staff</span> (staff_id, name, role, salary, contact) <span class="kw">VALUES</span>
+(<span class="nm">1</span>, <span class="st">'Mrs. Khadija Bibi'</span>,  <span class="st">'Administrator'</span>, <span class="nm">45000</span>, <span class="st">'0300-1112222'</span>),
+(<span class="nm">2</span>, <span class="st">'Mr. Tariq Mehmood'</span>,  <span class="st">'Caretaker'</span>,     <span class="nm">25000</span>, <span class="st">'0321-3334444'</span>),
+(<span class="nm">3</span>, <span class="st">'Dr. Nadia Iqbal'</span>,    <span class="st">'Doctor'</span>,        <span class="nm">60000</span>, <span class="st">'0333-5556666'</span>),
+(<span class="nm">4</span>, <span class="st">'Ms. Sana Perveen'</span>,   <span class="st">'Teacher'</span>,       <span class="nm">30000</span>, <span class="st">'0311-7778888'</span>),
+(<span class="nm">5</span>, <span class="st">'Mr. Imran Butt'</span>,     <span class="st">'Security'</span>,      <span class="nm">20000</span>, <span class="st">'0345-9990000'</span>),
+(<span class="nm">6</span>, <span class="st">'Mrs. Rukhsana Bano'</span>, <span class="st">'Cook'</span>,          <span class="nm">22000</span>, <span class="st">'0300-1231231'</span>);</pre>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">SELECT, JOIN &amp; Aggregate Queries</h3>
+      <div class="grid-2">
+        <div class="sql-block">
+          <div class="sql-block-head"><i class="fas fa-search"></i> Basic SELECT Queries</div>
+          <pre class="sql"><span class="cm">-- All children ordered by age</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">child</span> <span class="kw">ORDER BY</span> age <span class="kw">ASC</span>;
+
+<span class="cm">-- Female children only</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">child</span>
+<span class="kw">WHERE</span> gender = <span class="st">'Female'</span>;
+
+<span class="cm">-- Pending adoptions</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">adoption</span>
+<span class="kw">WHERE</span> status = <span class="st">'Pending'</span>;
+
+<span class="cm">-- Staff with salary above 30000</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">staff</span>
+<span class="kw">WHERE</span> salary &gt; <span class="nm">30000</span>
+<span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>;
+
+<span class="cm">-- Donations sorted by date</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">donation</span>
+<span class="kw">ORDER BY</span> date <span class="kw">DESC</span>;</pre>
+        </div>
+        <div class="sql-block">
+          <div class="sql-block-head"><i class="fas fa-link"></i> JOIN Queries</div>
+          <pre class="sql"><span class="cm">-- Adoption with child details</span>
+<span class="kw">SELECT</span> a.adoption_id, c.name, c.age,
+       a.adopter_name, a.status
+<span class="kw">FROM</span> <span class="tb">adoption</span> a
+<span class="kw">INNER JOIN</span> <span class="tb">child</span> c
+<span class="kw">ON</span> a.child_id = c.child_id;
+
+<span class="cm">-- Donation with donor name</span>
+<span class="kw">SELECT</span> d.donation_id, dn.name,
+       d.amount, d.date
+<span class="kw">FROM</span> <span class="tb">donation</span> d
+<span class="kw">INNER JOIN</span> <span class="tb">donor</span> dn
+<span class="kw">ON</span> d.donor_id = dn.donor_id;
+
+<span class="cm">-- Children NOT yet adopted</span>
+<span class="kw">SELECT</span> c.name, c.age, c.gender
+<span class="kw">FROM</span> <span class="tb">child</span> c
+<span class="kw">LEFT JOIN</span> <span class="tb">adoption</span> a
+<span class="kw">ON</span> c.child_id = a.child_id
+<span class="kw">WHERE</span> a.adoption_id <span class="kw">IS NULL</span>;</pre>
+        </div>
+        <div class="sql-block">
+          <div class="sql-block-head"><i class="fas fa-calculator"></i> Aggregate Queries</div>
+          <pre class="sql"><span class="cm">-- Total children count</span>
+<span class="kw">SELECT COUNT</span>(*) <span class="kw">AS</span> total_children
+<span class="kw">FROM</span> <span class="tb">child</span>;
+
+<span class="cm">-- Average age of children</span>
+<span class="kw">SELECT AVG</span>(age) <span class="kw">AS</span> avg_age <span class="kw">FROM</span> <span class="tb">child</span>;
+
+<span class="cm">-- Total donations received</span>
+<span class="kw">SELECT SUM</span>(amount) <span class="kw">AS</span> total
+<span class="kw">FROM</span> <span class="tb">donation</span>;
+
+<span class="cm">-- Count by gender</span>
+<span class="kw">SELECT</span> gender, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> count
+<span class="kw">FROM</span> <span class="tb">child</span> <span class="kw">GROUP BY</span> gender;
+
+<span class="cm">-- Monthly donation totals</span>
+<span class="kw">SELECT MONTH</span>(date) <span class="kw">AS</span> month,
+       <span class="kw">SUM</span>(amount) <span class="kw">AS</span> total
+<span class="kw">FROM</span> <span class="tb">donation</span>
+<span class="kw">GROUP BY MONTH</span>(date);</pre>
+        </div>
+        <div class="sql-block">
+          <div class="sql-block-head"><i class="fas fa-edit"></i> UPDATE &amp; DELETE</div>
+          <pre class="sql"><span class="cm">-- Update child health status</span>
+<span class="kw">UPDATE</span> <span class="tb">child</span>
+<span class="kw">SET</span> health_status = <span class="st">'Good'</span>
+<span class="kw">WHERE</span> child_id = <span class="nm">4</span>;
+
+<span class="cm">-- Approve an adoption</span>
+<span class="kw">UPDATE</span> <span class="tb">adoption</span>
+<span class="kw">SET</span> status = <span class="st">'Approved'</span>
+<span class="kw">WHERE</span> adoption_id = <span class="nm">2</span>;
+
+<span class="cm">-- Update staff salary</span>
+<span class="kw">UPDATE</span> <span class="tb">staff</span>
+<span class="kw">SET</span> salary = <span class="nm">65000</span>
+<span class="kw">WHERE</span> staff_id = <span class="nm">3</span>;
+
+<span class="cm">-- Delete rejected adoptions</span>
+<span class="kw">DELETE FROM</span> <span class="tb">adoption</span>
+<span class="kw">WHERE</span> status = <span class="st">'Rejected'</span>;</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<!-- SECTION 4: FEATURES -->
+<div class="section" id="features">
+  <div class="container">
+    <div class="section-title"><i class="fas fa-star"></i> System Features</div>
+    <div class="section-sub">Everything the Orphanage Management System can do</div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-desktop" style="margin-right:6px;"></i>Frontend Features</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle"></i><span><strong>Dashboard</strong> — Live stats cards, monthly donation bar chart, recent activity feed</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Children Management</strong> — Add, edit, delete children with health status badges</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Adoption Tracking</strong> — Create adoption records, toggle status (Pending/Approved/Rejected)</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Staff Management</strong> — Full CRUD for staff with role and salary tracking</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Donor Registry</strong> — Manage donors, view total donated per donor</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Donation Records</strong> — Log donations linked to donors with date and amount</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Search &amp; Filter</strong> — Real-time search on every table, filter by gender/status</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>SQL Viewer</strong> — All queries with syntax highlighting and copy button</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Local Storage</strong> — Data persists across page refreshes in the browser</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Toast Notifications</strong> — Feedback on every action (add, edit, delete)</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Responsive Design</strong> — Works on desktop, tablet and mobile</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--primary);"><i class="fas fa-database" style="margin-right:6px;"></i>Database Features</h3>
+        <ul class="feature-list">
+          <li><i class="fas fa-check-circle"></i><span><strong>5 Normalized Tables</strong> — child, adoption, donor, donation, staff</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Primary Keys</strong> — Every table has a unique identifier</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Foreign Keys</strong> — adoption.child_id → child, donation.donor_id → donor</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Referential Integrity</strong> — InnoDB engine enforces FK constraints</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>DDL Queries</strong> — CREATE DATABASE, CREATE TABLE with constraints</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>DML Queries</strong> — INSERT, UPDATE, DELETE operations</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>SELECT Queries</strong> — 12+ queries with WHERE, ORDER BY, LIKE</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>JOIN Queries</strong> — INNER JOIN and LEFT JOIN across related tables</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Aggregate Functions</strong> — COUNT, SUM, AVG, MAX, MIN, GROUP BY, HAVING</span></li>
+          <li><i class="fas fa-check-circle"></i><span><strong>Subqueries</strong> — Children not yet adopted using nested SELECT</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TECH STACK -->
+    <div class="section-title" style="font-size:20px;margin-bottom:16px;"><i class="fas fa-layer-group"></i> Technology Stack</div>
+    <div class="grid-4">
+      <div class="tech-item">
+        <div class="tech-icon" style="background:#e6f4f1;color:var(--primary);"><i class="fas fa-database"></i></div>
+        <div><h4>MySQL</h4><p>Relational database, InnoDB engine, utf8mb4 charset</p></div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon" style="background:#fff3e0;color:#e65100;"><i class="fab fa-html5"></i></div>
+        <div><h4>HTML5</h4><p>Semantic markup, single-page application structure</p></div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon" style="background:#e3f2fd;color:#1565c0;"><i class="fab fa-css3-alt"></i></div>
+        <div><h4>CSS3</h4><p>Custom properties, flexbox, grid, animations</p></div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon" style="background:#fffde7;color:#f57f17;"><i class="fab fa-js"></i></div>
+        <div><h4>JavaScript</h4><p>Vanilla JS, localStorage, DOM manipulation</p></div>
+      </div>
+    </div>
+
+    <!-- HOW TO USE -->
+    <div style="margin-top:32px;">
+      <div class="section-title" style="font-size:20px;margin-bottom:16px;"><i class="fas fa-play-circle"></i> How to Use the System</div>
+      <div class="card">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Open the Application</h4>
+              <p>Open <code style="background:var(--bg);padding:2px 6px;border-radius:4px;">index.html</code> in any web browser. The dashboard loads automatically with sample data.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Navigate Using the Sidebar</h4>
+              <p>Click any section in the left sidebar — Children, Adoptions, Staff, Donors, Donations, or SQL Queries.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Add New Records</h4>
+              <p>Click the green <strong>"Add"</strong> button on any page. Fill in the form fields and click Save. The record appears instantly in the table.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h4>Edit or Delete Records</h4>
+              <p>Each row has an <strong>Edit</strong> (pencil) and <strong>Delete</strong> (trash) button. Edits open the same form pre-filled. Deletes ask for confirmation first.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <h4>Search and Filter</h4>
+              <p>Use the search box at the top of each table to filter records in real time. Use the dropdown to filter by gender or adoption status.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-content">
+              <h4>View SQL Queries</h4>
+              <p>Click <strong>SQL Queries</strong> in the sidebar to see all database queries organized by type — DDL, DML, SELECT, JOIN, UPDATE/DELETE, and Aggregate.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="margin-bottom:8px;">
+    <strong>Orphanage Management System</strong> &nbsp;·&nbsp; DBMS Project &nbsp;·&nbsp; May 2026
+  </div>
+  <div>Built with MySQL &nbsp;·&nbsp; HTML5 &nbsp;·&nbsp; CSS3 &nbsp;·&nbsp; Vanilla JavaScript</div>
+  <div style="margin-top:10px;">
+    <a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:600;"><i class="fas fa-external-link-alt"></i> Open Live Application</a>
+  </div>
+</footer>
+
+</body>
+</html>
